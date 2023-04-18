@@ -1,12 +1,23 @@
-# example-service
+# start-service
 
-determining if go should be used for apis and microservices
+- every start
+- quasi Meldeergebnis
+- results from Livetiming/Protocol
 
-| features | Java | Go  |
-|----------|------|-----|
-| repo, service, controller structure   |  x   | x   |
-| swagger |x| ?   |
-| spring auth |x| ?   |
-| jdbc |x| x   |
-| hibernate |x| x   |
-| junit tests |x| x   |
+## Models
+
+### Start
+
+- id
+
+
+## API Endpoints
+
+```
+[GIN-debug] GET    /start                    --> sr-start/start-service/controller.getStarts (3 handlers)
+[GIN-debug] GET    /start/:id                --> sr-start/start-service/controller.getStart (3 handlers)
+[GIN-debug] DELETE /start/:id                --> sr-start/start-service/controller.removeStart (3 handlers)
+[GIN-debug] POST   /start                    --> sr-start/start-service/controller.addStart (3 handlers)
+[GIN-debug] PUT    /start                    --> sr-start/start-service/controller.updateStart (3 handlers)
+[GIN-debug] GET    /actuator                 --> sr-start/start-service/controller.actuator (3 handlers)
+```

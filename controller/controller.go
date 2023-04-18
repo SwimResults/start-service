@@ -5,21 +5,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
-	"sr-example/example-service/service"
+	"sr-start/start-service/service"
 )
 
 var router = gin.Default()
 
 func Run() {
 
-	port := os.Getenv("SR_EXAMPLE_PORT")
+	port := os.Getenv("SR_START_PORT")
 
 	if port == "" {
-		fmt.Println("no application port given! Please set SR_ATHLETE_PORT.")
+		fmt.Println("no application port given! Please set SR_START_PORT.")
 		return
 	}
 
-	exampleController()
+	startController()
 
 	router.GET("/actuator", actuator)
 

@@ -4,52 +4,52 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"sr-example/example-service/model"
-	"sr-example/example-service/service"
+	"sr-start/start-service/model"
+	"sr-start/start-service/service"
 )
 
-func exampleController() {
-	router.GET("/example", getExamples)
-	router.GET("/example/:id", getExample)
-	router.DELETE("/example/:id", removeExample)
-	router.POST("/example", addExample)
-	router.PUT("/example", updateExample)
+func startController() {
+	router.GET("/start", getStarts)
+	router.GET("/start/:id", getStart)
+	router.DELETE("/start/:id", removeStart)
+	router.POST("/start", addStart)
+	router.PUT("/start", updateStart)
 }
 
-func getExamples(c *gin.Context) {
-	examples, err := service.GetExamples()
+func getStarts(c *gin.Context) {
+	starts, err := service.GetStarts()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, examples)
+	c.IndentedJSON(http.StatusOK, starts)
 }
 
-func getExample(c *gin.Context) {
+func getStart(c *gin.Context) {
 	id, convErr := primitive.ObjectIDFromHex(c.Param("id"))
 	if convErr != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given id was not of type ObjectID"})
 		return
 	}
 
-	example, err := service.GetExampleById(id)
+	start, err := service.GetStartById(id)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, example)
+	c.IndentedJSON(http.StatusOK, start)
 }
 
-func removeExample(c *gin.Context) {
+func removeStart(c *gin.Context) {
 	id, convErr := primitive.ObjectIDFromHex(c.Param("id"))
 	if convErr != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given id was not of type ObjectID"})
 		return
 	}
 
-	err := service.RemoveExampleById(id)
+	err := service.RemoveStartById(id)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
@@ -58,14 +58,14 @@ func removeExample(c *gin.Context) {
 	c.IndentedJSON(http.StatusNoContent, "")
 }
 
-func addExample(c *gin.Context) {
-	var example model.Example
-	if err := c.BindJSON(&example); err != nil {
+func addStart(c *gin.Context) {
+	var start model.Start
+	if err := c.BindJSON(&start); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	r, err := service.AddExample(example)
+	r, err := service.AddStart(start)
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -74,14 +74,14 @@ func addExample(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, r)
 }
 
-func updateExample(c *gin.Context) {
-	var example model.Example
-	if err := c.BindJSON(&example); err != nil {
+func updateStart(c *gin.Context) {
+	var start model.Start
+	if err := c.BindJSON(&start); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	r, err := service.UpdateExample(example)
+	r, err := service.UpdateStart(start)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

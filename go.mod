@@ -1,4 +1,4 @@
-module sr-example/example-service
+module sr-start/start-service
 
 go 1.18
 
