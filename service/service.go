@@ -15,6 +15,7 @@ func Init(c *mongo.Client) {
 	client = c
 
 	startService(database)
+	heatService(database)
 }
 
 func PingDatabase() bool {

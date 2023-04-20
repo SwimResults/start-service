@@ -20,6 +20,7 @@ func Run() {
 	}
 
 	startController()
+	heatController()
 
 	router.GET("/actuator", actuator)
 
