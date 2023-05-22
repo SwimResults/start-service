@@ -34,7 +34,7 @@ func getStartsByBsonDocument(d primitive.D) ([]model.Start, error) {
 		if !start.DisqualificationId.IsZero() {
 			start.Disqualification, _ = GetDisqualificationById(start.DisqualificationId)
 		}
-		start.Heat, _ = GetHeatById(start.HeatId)
+		start.Heat, _ = GetHeatByNumber(start.Meeting, start.Event, start.HeatNumber)
 		starts = append(starts, start)
 	}
 
@@ -70,32 +70,12 @@ func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}})
 }
 
-func GetStartsByMeetingAndEvent(meeting string, event primitive.ObjectID) ([]model.Start, error) {
-	var result []model.Start
-	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}})
-	if err != nil {
-		return []model.Start{}, err
-	}
-	for _, start := range starts {
-		if start.Heat.EventId == event {
-			result = append(result, start)
-		}
-	}
-	return result, nil
+func GetStartsByMeetingAndEvent(meeting string, event string) ([]model.Start, error) {
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
 }
 
-func GetStartsByMeetingAndEventAndHeat(meeting string, event primitive.ObjectID, heat int) ([]model.Start, error) {
-	var result []model.Start
-	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}})
-	if err != nil {
-		return []model.Start{}, err
-	}
-	for _, start := range starts {
-		if start.Heat.EventId == event && start.Heat.Number == heat {
-			result = append(result, start)
-		}
-	}
-	return result, nil
+func GetStartsByMeetingAndEventAndHeat(meeting string, event string, heat int) ([]model.Start, error) {
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}})
 }
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
@@ -133,9 +113,6 @@ func AddStart(start model.Start) (model.Start, error) {
 	if !start.Disqualification.Identifier.IsZero() {
 		start.DisqualificationId = start.Disqualification.Identifier
 	}
-	if !start.Heat.Identifier.IsZero() {
-		start.HeatId = start.Heat.Identifier
-	}
 
 	start.AddedAt = time.Now()
 	start.UpdatedAt = time.Now()
@@ -154,9 +131,6 @@ func UpdateStart(start model.Start) (model.Start, error) {
 
 	if !start.Disqualification.Identifier.IsZero() {
 		start.DisqualificationId = start.Disqualification.Identifier
-	}
-	if !start.Heat.Identifier.IsZero() {
-		start.HeatId = start.Heat.Identifier
 	}
 	start.UpdatedAt = time.Now()
 

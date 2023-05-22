@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -14,7 +15,7 @@ func startController() {
 	router.GET("/start/:id", getStart)
 
 	router.GET("/start/meet/:meet_id", getStartsByMeeting)
-	router.GET("/start/meet/:meet_id/:event_id/:heat_id", getStartsByMeetingAndEventAndHeat)
+	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id", getStartsByMeetingAndEventAndHeat)
 	router.GET("/start/meet/:meet_id/event/:event_id", getStartsByMeetingAndEvent)
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
@@ -75,18 +76,18 @@ func getStartsByMeetingAndEventAndHeat(c *gin.Context) {
 		return
 	}
 
-	event, convErr := primitive.ObjectIDFromHex(c.Param("event_id"))
-	if convErr != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id was not of type ObjectID"})
+	event := c.Param("event_id")
+	if event == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
 		return
 	}
 
 	heat, convErr := strconv.Atoi(c.Param("heat_id"))
 	if convErr != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given heat_id was not of type ObjectID"})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given heat_id was not an int"})
 		return
 	}
-
+	fmt.Printf("getting with: %s %s %d", meeting, event, heat)
 	start, err := service.GetStartsByMeetingAndEventAndHeat(meeting, event, heat)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
@@ -104,9 +105,9 @@ func getStartsByMeetingAndEvent(c *gin.Context) {
 		return
 	}
 
-	event, convErr := primitive.ObjectIDFromHex(c.Param("event_id"))
-	if convErr != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id was not of type ObjectID"})
+	event := c.Param("event_id")
+	if event == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
 		return
 	}
 

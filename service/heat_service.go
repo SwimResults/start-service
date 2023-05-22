@@ -61,6 +61,26 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return model.Heat{}, errors.New("no entry with given id found")
 }
 
+func GetHeatByNumber(meeting string, event string, number int) (model.Heat, error) {
+	var heat model.Heat
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := heatCollection.Find(ctx, bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
+	if err != nil {
+		return model.Heat{}, err
+	}
+	defer cursor.Close(ctx)
+
+	if cursor.Next(ctx) {
+		cursor.Decode(&heat)
+		return heat, nil
+	}
+
+	return model.Heat{}, errors.New("no entry with given id found")
+}
+
 func RemoveHeatById(id primitive.ObjectID) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
