@@ -78,6 +78,10 @@ func GetStartsByMeetingAndEventAndHeat(meeting string, event string, heat int) (
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}})
 }
 
+func GetStartsByMeetingAndEventAndHeatAndLane(meeting string, event string, heat int, lane int) ([]model.Start, error) {
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}, {"lane", lane}})
+}
+
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"athlete", athlete}})
 }

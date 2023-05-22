@@ -16,6 +16,7 @@ func startController() {
 
 	router.GET("/start/meet/:meet_id", getStartsByMeeting)
 	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id", getStartsByMeetingAndEventAndHeat)
+	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id/lane/:lane_number", getStartsByMeetingAndEventAndHeatAndLane)
 	router.GET("/start/meet/:meet_id/event/:event_id", getStartsByMeetingAndEvent)
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
@@ -89,6 +90,41 @@ func getStartsByMeetingAndEventAndHeat(c *gin.Context) {
 	}
 	fmt.Printf("getting with: %s %s %d", meeting, event, heat)
 	start, err := service.GetStartsByMeetingAndEventAndHeat(meeting, event, heat)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, start)
+}
+
+func getStartsByMeetingAndEventAndHeatAndLane(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event := c.Param("event_id")
+	if event == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
+		return
+	}
+
+	heat, convErr := strconv.Atoi(c.Param("heat_id"))
+	if convErr != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given heat_id was not an int"})
+		return
+	}
+
+	lane, convErr2 := strconv.Atoi(c.Param("lane_number"))
+	if convErr2 != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given lane_number was not an int"})
+		return
+	}
+	fmt.Printf("getting with: %s %s %d", meeting, event, heat)
+	start, err := service.GetStartsByMeetingAndEventAndHeatAndLane(meeting, event, heat, lane)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
