@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"sr-start/start-service/model"
 	"time"
 )
@@ -22,7 +23,10 @@ func getStartsByBsonDocument(d primitive.D) ([]model.Start, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := collection.Find(ctx, d)
+	queryOptions := options.FindOptions{}
+	queryOptions.SetSort(bson.D{{"event", 1}, {"heat_number", 1}, {"lane", 1}})
+
+	cursor, err := collection.Find(ctx, d, &queryOptions)
 	if err != nil {
 		return []model.Start{}, err
 	}
