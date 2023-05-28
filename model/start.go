@@ -8,7 +8,7 @@ import (
 type Start struct {
 	Identifier         primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Meeting            string             `json:"meeting,omitempty" bson:"meeting,omitempty"`
-	Event              string             `json:"event,omitempty" bson:"event,omitempty"`
+	Event              int                `json:"event,omitempty" bson:"event,omitempty"`
 	HeatNumber         int                `json:"heat_number" bson:"heat,omitempty"`
 	Heat               Heat               `json:"heat,omitempty" bson:"-"`
 	Lane               int                `json:"lane,omitempty" bson:"lane,omitempty"`
