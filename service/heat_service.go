@@ -16,13 +16,13 @@ func heatService(database *mongo.Database) {
 	heatCollection = database.Collection("heat")
 }
 
-func GetHeats() ([]model.Heat, error) {
+func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
 	var heats []model.Heat
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := heatCollection.Find(ctx, bson.M{})
+	cursor, err := heatCollection.Find(ctx, d)
 	if err != nil {
 		return []model.Heat{}, err
 	}
@@ -39,6 +39,14 @@ func GetHeats() ([]model.Heat, error) {
 	}
 
 	return heats, nil
+}
+
+func GetHeats() ([]model.Heat, error) {
+	return getHeatsByBsonDocument(bson.D{})
+}
+
+func GetHeatsByMeeting(id string) ([]model.Heat, error) {
+	return getHeatsByBsonDocument(bson.D{{"meeting", id}})
 }
 
 func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
