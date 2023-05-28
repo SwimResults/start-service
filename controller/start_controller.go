@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -88,7 +87,6 @@ func getStartsByMeetingAndEventAndHeat(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given heat_id was not an int"})
 		return
 	}
-	fmt.Printf("getting with: %s %s %d", meeting, event, heat)
 	start, err := service.GetStartsByMeetingAndEventAndHeat(meeting, event, heat)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
@@ -123,7 +121,6 @@ func getStartsByMeetingAndEventAndHeatAndLane(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given lane_number was not an int"})
 		return
 	}
-	fmt.Printf("getting with: %s %s %d", meeting, event, heat)
 	start, err := service.GetStartsByMeetingAndEventAndHeatAndLane(meeting, event, heat, lane)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
