@@ -69,7 +69,7 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return model.Heat{}, errors.New("no entry with given id found")
 }
 
-func GetHeatByNumber(meeting string, event string, number int) (model.Heat, error) {
+func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
 	var heat model.Heat
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
