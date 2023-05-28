@@ -77,9 +77,9 @@ func getStartsByMeetingAndEventAndHeat(c *gin.Context) {
 		return
 	}
 
-	event := c.Param("event_id")
-	if event == "" {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
+	event, err := strconv.Atoi(c.Param("event_id"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
 		return
 	}
 
@@ -106,9 +106,9 @@ func getStartsByMeetingAndEventAndHeatAndLane(c *gin.Context) {
 		return
 	}
 
-	event := c.Param("event_id")
-	if event == "" {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
+	event, err := strconv.Atoi(c.Param("event_id"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
 		return
 	}
 
@@ -141,9 +141,9 @@ func getStartsByMeetingAndEvent(c *gin.Context) {
 		return
 	}
 
-	event := c.Param("event_id")
-	if event == "" {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is empty"})
+	event, err := strconv.Atoi(c.Param("event_id"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
 		return
 	}
 

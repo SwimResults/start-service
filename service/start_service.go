@@ -74,15 +74,15 @@ func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}})
 }
 
-func GetStartsByMeetingAndEvent(meeting string, event string) ([]model.Start, error) {
+func GetStartsByMeetingAndEvent(meeting string, event int) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
 }
 
-func GetStartsByMeetingAndEventAndHeat(meeting string, event string, heat int) ([]model.Start, error) {
+func GetStartsByMeetingAndEventAndHeat(meeting string, event int, heat int) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}})
 }
 
-func GetStartsByMeetingAndEventAndHeatAndLane(meeting string, event string, heat int, lane int) ([]model.Start, error) {
+func GetStartsByMeetingAndEventAndHeatAndLane(meeting string, event int, heat int, lane int) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}, {"lane", lane}})
 }
 
