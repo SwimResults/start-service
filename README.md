@@ -21,3 +21,7 @@
 [GIN-debug] PUT    /start                    --> sr-start/start-service/controller.updateStart (3 handlers)
 [GIN-debug] GET    /actuator                 --> sr-start/start-service/controller.actuator (3 handlers)
 ```
+
+--------
+
+© Copyright 2022-2023 - SwimResults & Konrad Weiß
