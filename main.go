@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"math/rand"
 	"os"
 	"sr-start/start-service/controller"
 	"sr-start/start-service/service"
@@ -16,6 +18,26 @@ var client *mongo.Client
 
 func main() {
 	ctx := connectDB()
+
+	log.SetFormatter(&log.JSONFormatter{
+		FieldMap: log.FieldMap{
+			log.FieldKeyTime: "@timestamp",
+			log.FieldKeyMsg:  "message",
+		},
+	})
+	log.SetLevel(log.TraceLevel)
+
+	rand.Seed(time.Now().UnixNano())
+	min := 1000000
+	max := 9999999
+	rnd := rand.Intn(max-min) + min
+	filename := fmt.Sprintf("logs/out-%d.log", rnd)
+
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err == nil {
+		log.SetOutput(file)
+	}
+	defer file.Close()
 	service.Init(client)
 	controller.Run()
 
