@@ -129,6 +129,15 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		}
 		return model.Heat{}, false, err
 	}
+
+	if !heat.StartEstimation.IsZero() {
+		existing.StartEstimation = heat.StartEstimation
+		existing, err = UpdateHeat(existing)
+		if err != nil {
+			return model.Heat{}, false, err
+		}
+	}
+
 	return existing, false, nil
 }
 
