@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 	"errors"
+	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"sr-start/start-service/model"
 	"time"
 )
 
@@ -86,7 +86,7 @@ func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) 
 		return heat, nil
 	}
 
-	return model.Heat{}, errors.New("no entry with given id found")
+	return model.Heat{}, errors.New("no entry with given number and event found in meeting")
 }
 
 func RemoveHeatById(id primitive.ObjectID) error {
@@ -111,6 +111,25 @@ func AddHeat(heat model.Heat) (model.Heat, error) {
 	}
 
 	return GetHeatById(r.InsertedID.(primitive.ObjectID))
+}
+
+func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
+	if heat.Meeting == "" || heat.Event == 0 || heat.Number == 0 {
+		return model.Heat{}, false, errors.New("missing arguments (meeting/event/heat is needed)")
+	}
+
+	existing, err := GetHeatByNumber(heat.Meeting, heat.Event, heat.Number)
+	if err != nil {
+		if err.Error() == "no entry with given number and event found in meeting" {
+			newHeat, err2 := AddHeat(heat)
+			if err2 != nil {
+				return model.Heat{}, false, err2
+			}
+			return newHeat, true, nil
+		}
+		return model.Heat{}, false, err
+	}
+	return existing, false, nil
 }
 
 func UpdateHeat(heat model.Heat) (model.Heat, error) {

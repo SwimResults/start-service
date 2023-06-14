@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/swimresults/start-service/controller"
+	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"math/rand"
 	"os"
-	"sr-start/start-service/controller"
-	"sr-start/start-service/service"
 	"time"
 )
 

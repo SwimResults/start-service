@@ -2,10 +2,10 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/start-service/model"
+	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"sr-start/start-service/model"
-	"sr-start/start-service/service"
 	"strconv"
 )
 

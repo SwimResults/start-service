@@ -3,9 +3,9 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/start-service/service"
 	"net/http"
 	"os"
-	"sr-start/start-service/service"
 )
 
 var router = gin.Default()

@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/start-service/dto"
+	"github.com/swimresults/start-service/model"
+	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
-	"sr-start/start-service/model"
-	"sr-start/start-service/service"
 )
 
 func heatController() {
@@ -97,7 +99,25 @@ func addHeat(c *gin.Context) {
 }
 
 func importHeat(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
+	var request dto.ImportHeatRequestDto
+	if err := c.BindJSON(&request); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	heat, r, err := service.ImportHeat(request.Heat)
+	if err != nil {
+		fmt.Printf(err.Error())
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	if r {
+		c.IndentedJSON(http.StatusCreated, heat)
+	} else {
+		c.IndentedJSON(http.StatusOK, heat)
+	}
+
 }
 
 func importTimes(c *gin.Context) {
