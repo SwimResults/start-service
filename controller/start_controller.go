@@ -15,7 +15,7 @@ func startController() {
 
 	router.GET("/start/meet/:meet_id", getStartsByMeeting)
 	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id", getStartsByMeetingAndEventAndHeat)
-	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id/lane/:lane_number", getStartsByMeetingAndEventAndHeatAndLane)
+	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id/lane/:lane_number", getStartByMeetingAndEventAndHeatAndLane)
 	router.GET("/start/meet/:meet_id/event/:event_id", getStartsByMeetingAndEvent)
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
@@ -98,7 +98,7 @@ func getStartsByMeetingAndEventAndHeat(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, start)
 }
 
-func getStartsByMeetingAndEventAndHeatAndLane(c *gin.Context) {
+func getStartByMeetingAndEventAndHeatAndLane(c *gin.Context) {
 	meeting := c.Param("meet_id")
 
 	if meeting == "" {
@@ -123,7 +123,7 @@ func getStartsByMeetingAndEventAndHeatAndLane(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given lane_number was not an int"})
 		return
 	}
-	start, err := service.GetStartsByMeetingAndEventAndHeatAndLane(meeting, event, heat, lane)
+	start, err := service.GetStartByMeetingAndEventAndHeatAndLane(meeting, event, heat, lane)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

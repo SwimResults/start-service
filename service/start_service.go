@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -82,8 +83,17 @@ func GetStartsByMeetingAndEventAndHeat(meeting string, event int, heat int) ([]m
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}})
 }
 
-func GetStartsByMeetingAndEventAndHeatAndLane(meeting string, event int, heat int, lane int) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}, {"lane", lane}})
+func GetStartByMeetingAndEventAndHeatAndLane(meeting string, event int, heat int, lane int) (model.Start, error) {
+	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}, {"lane", lane}})
+	if err != nil {
+		return model.Start{}, err
+	}
+
+	if len(starts) > 0 {
+		return starts[0], nil
+	}
+
+	return model.Start{}, errors.New("no entry with given meeting, event, heat and lane found")
 }
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
@@ -131,6 +141,48 @@ func AddStart(start model.Start) (model.Start, error) {
 	}
 
 	return GetStartById(r.InsertedID.(primitive.ObjectID))
+}
+
+func ImportStart(start model.Start) (*model.Start, bool, error) {
+	// TODO: find existing: DSV (event, athleteEventId) / res-PDF (event, athlete name) / reg-PDF (event, heat, lane)
+	existing, err := GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
+	if err != nil {
+		if err.Error() == "no entry with given meeting, event, heat and lane found" {
+			// TODO: update athlete (+team) information
+			newStart, err2 := AddStart(start)
+			if err2 != nil {
+				return nil, false, err2
+			}
+			return &newStart, true, nil
+		}
+		return nil, false, err
+	}
+	// TODO: update existing
+
+	fmt.Printf("import of start '%s/%d/%d/%d', already present\n", start.Meeting, start.Event, start.HeatNumber, start.Lane)
+
+	changed := false
+	if existing.Certified == false && start.Certified == true {
+		existing.Certified = start.Certified
+		changed = true
+	}
+	if existing.Rank == 0 && start.Rank != 0 {
+		existing.Rank = start.Rank
+		changed = true
+	}
+	if existing.AthleteMeetingId == 0 && start.AthleteMeetingId != 0 {
+		existing.AthleteMeetingId = start.AthleteMeetingId
+		changed = true
+	}
+
+	if changed {
+		fmt.Printf("updating some values...\n")
+		existing, err = UpdateStart(existing)
+		if err != nil {
+			return nil, false, err
+		}
+	}
+	return &existing, false, nil
 }
 
 func UpdateStart(start model.Start) (model.Start, error) {
