@@ -6,11 +6,11 @@ import (
 )
 
 type Heat struct {
-	Identifier      primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Meeting         string             `json:"meeting,omitempty" bson:"meeting,omitempty"`
-	Event           int                `json:"event,omitempty" bson:"event,omitempty"`
-	Number          int                `json:"number,omitempty" bson:"number,omitempty"`
-	StartEstimation time.Time          `json:"start_estimation,omitempty" bson:"start_estimation,omitempty"`
-	StartAt         time.Time          `json:"start_at,omitempty" bson:"start_at,omitempty"`
-	FinishedAt      time.Time          `json:"finished_at,omitempty" bson:"finished_at,omitempty"`
+	Identifier      primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`                           // automatically
+	Meeting         string             `json:"meeting,omitempty" bson:"meeting,omitempty"`                   // automatically
+	Event           int                `json:"event,omitempty" bson:"event,omitempty"`                       // PDF + DSV
+	Number          int                `json:"number,omitempty" bson:"number,omitempty"`                     // PDF + DSV
+	StartEstimation time.Time          `json:"start_estimation,omitempty" bson:"start_estimation,omitempty"` // PDF
+	StartAt         time.Time          `json:"start_at,omitempty" bson:"start_at,omitempty"`                 // automatically
+	FinishedAt      time.Time          `json:"finished_at,omitempty" bson:"finished_at,omitempty"`           // automatically
 }
