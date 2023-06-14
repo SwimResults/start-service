@@ -12,9 +12,13 @@ func heatController() {
 	router.GET("/heat", getHeats)
 	router.GET("/heat/:id", getHeat)
 	router.GET("/heat/meet/:meet_id", getHeatsByMeeting)
-	router.DELETE("/heat/:id", removeHeat)
+
 	router.POST("/heat", addHeat)
+	router.POST("/heat/import", importHeat)
+	router.POST("/heat/times/import", importTimes)
+
 	router.PUT("/heat", updateHeat)
+	router.DELETE("/heat/:id", removeHeat)
 }
 
 func getHeats(c *gin.Context) {
@@ -90,6 +94,14 @@ func addHeat(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, r)
+}
+
+func importHeat(c *gin.Context) {
+	c.Status(http.StatusNotImplemented)
+}
+
+func importTimes(c *gin.Context) {
+	c.Status(http.StatusNotImplemented)
 }
 
 func updateHeat(c *gin.Context) {

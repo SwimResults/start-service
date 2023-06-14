@@ -21,6 +21,8 @@ func Run() {
 
 	startController()
 	heatController()
+	disqualificationController()
+	resultController()
 
 	router.GET("/actuator", actuator)
 

@@ -20,8 +20,10 @@ func startController() {
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
 
-	router.DELETE("/start/:id", removeStart)
 	router.POST("/start", addStart)
+	router.POST("/start/import", importStart)
+
+	router.DELETE("/start/:id", removeStart)
 	router.PUT("/start", updateStart)
 }
 
@@ -222,6 +224,10 @@ func addStart(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, r)
+}
+
+func importStart(c *gin.Context) {
+	c.Status(http.StatusNotImplemented)
 }
 
 func updateStart(c *gin.Context) {
