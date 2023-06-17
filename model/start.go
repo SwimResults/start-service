@@ -15,6 +15,8 @@ type Start struct {
 	Athlete            primitive.ObjectID `json:"athlete,omitempty" bson:"athlete,omitempty"`                       // PDF + DSV (via athlete)
 	AthleteMeetingId   int                `json:"athlete_meeting_id,omitempty" bson:"athlete_meeting_id,omitempty"` // DSV						(update on import)
 	AthleteName        string             `json:"athlete_name,omitempty" bson:"athlete_name,omitempty"`             // PDF + DSV (+ Livetiming)
+	AthleteAlias       string             `json:"athlete_alias,omitempty" bson:"athlete_alias,omitempty"`           // automatically
+	AthleteYear        int                `json:"athlete_year,omitempty" bson:"athlete_year,omitempty"`             // PDF + DSV
 	AthleteTeam        primitive.ObjectID `json:"athlete_team,omitempty" bson:"athlete_team,omitempty"`             // PDF + DSV (+ Livetiming)
 	Rank               int                `json:"rank,omitempty" bson:"rank,omitempty"`                             // PDF + DSV				(update on import)
 	Certified          bool               `json:"certified,omitempty" bson:"certified,omitempty"`                   // PDF + DSV				(update on import)

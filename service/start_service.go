@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/swimresults/service-core/misc"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,7 +19,7 @@ func startService(database *mongo.Database) {
 	collection = database.Collection("start")
 }
 
-func getStartsByBsonDocument(d primitive.D) ([]model.Start, error) {
+func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
 	var starts []model.Start
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -50,8 +51,9 @@ func getStartsByBsonDocument(d primitive.D) ([]model.Start, error) {
 	return starts, nil
 }
 
-func GetStartById(id primitive.ObjectID) (model.Start, error) {
-	starts, err := getStartsByBsonDocument(bson.D{{"_id", id}})
+func getStartByBsonDocument(d interface{}) (model.Start, error) {
+	starts, err := getStartsByBsonDocument(d)
+
 	if err != nil {
 		return model.Start{}, err
 	}
@@ -60,7 +62,11 @@ func GetStartById(id primitive.ObjectID) (model.Start, error) {
 		return starts[0], nil
 	}
 
-	return model.Start{}, errors.New("no entry with given id found")
+	return model.Start{}, errors.New("no entry found")
+}
+
+func GetStartById(id primitive.ObjectID) (model.Start, error) {
+	return getStartByBsonDocument(bson.D{{"_id", id}})
 }
 
 func GetStarts() ([]model.Start, error) {
@@ -84,16 +90,50 @@ func GetStartsByMeetingAndEventAndHeat(meeting string, event int, heat int) ([]m
 }
 
 func GetStartByMeetingAndEventAndHeatAndLane(meeting string, event int, heat int, lane int) (model.Start, error) {
-	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}, {"lane", lane}})
-	if err != nil {
-		return model.Start{}, err
+	return getStartByBsonDocument(
+		bson.D{
+			{"meeting", meeting},
+			{"event", event},
+			{"heat", heat},
+			{"lane", lane},
+		},
+	)
+}
+
+func GetStartByMeetingAndEventAndAthleteMeetingId(meeting string, event int, athleteMeetingId int) (model.Start, error) {
+	return getStartByBsonDocument(bson.D{
+		{"meeting", meeting},
+		{"event", event},
+		{"athlete_meeting_id", athleteMeetingId},
+	})
+}
+
+func GetStartByMeetingAndEventAndAthleteNameAndYear(meeting string, event int, athleteName string, year int) (model.Start, error) {
+	if hasComma, first, last := misc.ExtractNames(athleteName); hasComma {
+		athleteName = first + " " + last
 	}
 
-	if len(starts) > 0 {
-		return starts[0], nil
-	}
+	return getStartByBsonDocument(bson.M{
+		"$and": []interface{}{
+			bson.M{"meeting": meeting},
+			bson.M{"event": event},
+			bson.M{"athlete_year": year},
+			bson.M{
+				"$or": []interface{}{
+					bson.M{"name": bson.M{"$regex": athleteName, "$options": "i"}},
+					bson.M{"alias": bson.M{"$regex": misc.Aliasify(athleteName), "$options": "i"}},
+				},
+			},
+		},
+	})
+}
 
-	return model.Start{}, errors.New("no entry with given meeting, event, heat and lane found")
+func GetStartByMeetingAndEventAndAthleteId(meeting string, event int, athleteId primitive.ObjectID) (model.Start, error) {
+	return getStartByBsonDocument(bson.D{
+		{"meeting", meeting},
+		{"event", event},
+		{"athlete", athleteId},
+	})
 }
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
@@ -144,20 +184,90 @@ func AddStart(start model.Start) (model.Start, error) {
 }
 
 func ImportStart(start model.Start) (*model.Start, bool, error) {
-	// TODO: find existing: DSV (event, athleteEventId) / res-PDF (event, athlete name) / reg-PDF (event, heat, lane)
-	existing, err := GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
-	if err != nil {
-		if err.Error() == "no entry with given meeting, event, heat and lane found" {
-			// TODO: update athlete (+team) information
-			newStart, err2 := AddStart(start)
-			if err2 != nil {
-				return nil, false, err2
-			}
-			return &newStart, true, nil
-		}
-		return nil, false, err
+	// looks for existing:
+	// 		DSV 			(event, athleteMeetingId)
+	//		PDF 			(event, athlete name, year)
+	//		start list PDF 	(event, heat, lane)
+	// 		special:	look for athlete with given name
+	//						(only as last option because of synchronous request and reliability on external service)
+	// if !existing:
+	// 		save athlete name and alias
+	//		look up athlete
+	//		look up team
+	//		save
+	//
+	// else:
+	//		update fields
+
+	if start.Meeting == "" || start.Event == 0 {
+		return nil, false, errors.New("missing arguments (meeting + event is needed)")
 	}
-	// TODO: update existing
+
+	var existing model.Start
+	var err error
+	found := false
+
+	if start.AthleteMeetingId != 0 {
+		existing, err = GetStartByMeetingAndEventAndAthleteMeetingId(start.Meeting, start.Event, start.AthleteMeetingId)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return nil, false, err
+			}
+		} else {
+			found = true
+		}
+	}
+
+	if !found && start.AthleteName != "" && start.AthleteYear != 0 {
+		existing, err = GetStartByMeetingAndEventAndAthleteNameAndYear(start.Meeting, start.Event, start.AthleteName, start.AthleteYear)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return nil, false, err
+			}
+		} else {
+			found = true
+		}
+	}
+
+	if !found && start.HeatNumber != 0 && start.Lane >= 0 {
+		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return nil, false, err
+			}
+		} else {
+			found = true
+		}
+	}
+
+	if !found && start.AthleteName != "" && start.AthleteYear != 0 && athleteClient != nil {
+		athlete, found2, err2 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+		if err2 != nil {
+			return nil, false, err2
+		}
+		if found2 {
+			existing, err = GetStartByMeetingAndEventAndAthleteId(start.Meeting, start.Event, athlete.Identifier)
+			if err != nil {
+				if err.Error() != "no entry found" {
+					return nil, false, err
+				}
+			} else {
+				found = true
+			}
+		}
+	}
+
+	if !found {
+		// create start
+		// TODO: set name values
+		// TODO: get athleteID
+		// TODO: get teamID
+		newStart, err2 := AddStart(start)
+		if err2 != nil {
+			return nil, false, err2
+		}
+		return &newStart, true, nil
+	}
 
 	fmt.Printf("import of start '%s/%d/%d/%d', already present\n", start.Meeting, start.Event, start.HeatNumber, start.Lane)
 
@@ -172,6 +282,10 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	}
 	if existing.AthleteMeetingId == 0 && start.AthleteMeetingId != 0 {
 		existing.AthleteMeetingId = start.AthleteMeetingId
+		changed = true
+	}
+	if existing.AthleteName == "" && start.AthleteName != "" {
+		existing.AthleteName = start.AthleteName
 		changed = true
 	}
 

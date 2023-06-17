@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -227,7 +229,25 @@ func addStart(c *gin.Context) {
 }
 
 func importStart(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
+	var request dto.ImportStartRequestDto
+	if err := c.BindJSON(&request); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	start, r, err := service.ImportStart(request.Start)
+	if err != nil {
+		fmt.Printf(err.Error())
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	if r {
+		c.IndentedJSON(http.StatusCreated, start)
+	} else {
+		c.IndentedJSON(http.StatusOK, start)
+	}
+
 }
 
 func updateStart(c *gin.Context) {
