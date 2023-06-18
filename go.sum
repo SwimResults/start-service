@@ -65,6 +65,8 @@ github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMT
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/swimresults/athlete-service v1.3.0 h1:v9KyGAQLJEP6F9qtZtayN2AzFeHqDFyrL68vrDS8Rgg=
 github.com/swimresults/athlete-service v1.3.0/go.mod h1:wICF0Ybp/seSRLQks0qcEvGCOQ5YOmNy4XmPh6Ulmmo=
+github.com/swimresults/athlete-service v1.4.0 h1:EVg7gSbaA0TBFrlgY+meXxx8wmvQfZRImo7pXf4V2xk=
+github.com/swimresults/athlete-service v1.4.0/go.mod h1:9V0xeo/evzt/SvSoDx6EjFoChypG2v+i/PBA3tienpM=
 github.com/swimresults/service-core v0.2.1 h1:0T9RBKxHgEF8ZqXPE4/+u9yVBRfytNEJvPKb2gstMGY=
 github.com/swimresults/service-core v0.2.1/go.mod h1:VKQzdyiKKngHidX8bJpE4JpZpDq767r3slbhHcf0uGk=
 github.com/swimresults/service-core v0.3.1 h1:ErwnTSZHjjBg6A1U+EXEofxrgrtl4/M9rqz0hOXlFYU=
