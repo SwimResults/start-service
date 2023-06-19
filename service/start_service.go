@@ -199,8 +199,19 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	// else:
 	//		update fields
 
-	if start.Meeting == "" || start.Event == 0 {
-		return nil, false, errors.New("missing arguments (meeting + event is needed)")
+	if start.Meeting == "" ||
+		start.Event == 0 ||
+		start.AthleteTeamName == "" ||
+		start.AthleteName == "" ||
+		start.AthleteYear == 0 {
+		return nil, false, fmt.Errorf("missing arguments"+
+			"(expected: meeting; event; athlete_team_name; athlete_name; athlete_year; ..."+
+			"got: '%s', '%d', '%s', '%s', '%d')",
+			start.Meeting,
+			start.Event,
+			start.AthleteTeamName,
+			start.AthleteName,
+			start.AthleteYear)
 	}
 
 	var existing model.Start
@@ -259,13 +270,38 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 
 	if !found {
 		// create start
-		// TODO: set name values
-		// TODO: get athleteID
-		// TODO: get teamID
+		// get athleteID
+		athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+		if err3 != nil {
+			return nil, false, err3
+		}
+		if !f {
+			return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
+		}
+		start.Athlete = athlete.Identifier
+
+		// get teamID
+		team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
+		if err4 != nil {
+			return nil, false, err4
+		}
+		if !f2 {
+			return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
+		}
+
+		start.AthleteTeam = team.Identifier
+
+		// set name values
+		if hasComma, first, last := misc.ExtractNames(start.AthleteName); hasComma {
+			start.AthleteName = first + " " + last
+		}
+		start.AthleteAlias = misc.Aliasify(start.AthleteName)
 		newStart, err2 := AddStart(start)
 		if err2 != nil {
 			return nil, false, err2
 		}
+		fmt.Printf("import of start '%s/%d/%d/%d', was created\n", start.Meeting, start.Event, start.HeatNumber, start.Lane)
+
 		return &newStart, true, nil
 	}
 

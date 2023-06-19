@@ -11,6 +11,7 @@ import (
 
 var client *mongo.Client
 var athleteClient *client2.AthleteClient
+var teamClient *client2.TeamClient
 
 func Init(c *mongo.Client) {
 	database := c.Database(os.Getenv("SR_START_MONGO_DATABASE"))
@@ -19,6 +20,7 @@ func Init(c *mongo.Client) {
 	athleteServiceUrl := os.Getenv("SR_START_ATHLETE_URL")
 	if athleteServiceUrl != "" {
 		athleteClient = client2.NewAthleteClient(athleteServiceUrl)
+		teamClient = client2.NewTeamClient(athleteServiceUrl)
 	}
 
 	startService(database)
