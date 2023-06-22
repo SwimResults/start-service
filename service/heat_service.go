@@ -130,8 +130,16 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		return model.Heat{}, false, err
 	}
 
+	changed := false
 	if !heat.StartEstimation.IsZero() {
 		existing.StartEstimation = heat.StartEstimation
+		changed = true
+	}
+	if !heat.StartAt.IsZero() {
+		existing.StartAt = heat.StartAt
+		changed = true
+	}
+	if changed {
 		existing, err = UpdateHeat(existing)
 		if err != nil {
 			return model.Heat{}, false, err
