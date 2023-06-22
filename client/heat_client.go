@@ -7,7 +7,6 @@ import (
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"net/http"
-	"time"
 )
 
 type HeatClient struct {
@@ -18,14 +17,9 @@ func NewHeatClient(url string) *HeatClient {
 	return &HeatClient{apiUrl: url}
 }
 
-func (c *HeatClient) ImportHeat(meeting string, event int, number int, estimatedStart time.Time) (*model.Heat, bool, error) {
+func (c *HeatClient) ImportHeat(heat model.Heat) (*model.Heat, bool, error) {
 	request := dto.ImportHeatRequestDto{
-		Heat: model.Heat{
-			Meeting:         meeting,
-			Event:           event,
-			Number:          number,
-			StartEstimation: estimatedStart,
-		},
+		Heat: heat,
 	}
 
 	res, err := client.Post(c.apiUrl, "heat/import", request)
