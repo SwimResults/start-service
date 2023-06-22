@@ -183,6 +183,82 @@ func AddStart(start model.Start) (model.Start, error) {
 	return GetStartById(r.InsertedID.(primitive.ObjectID))
 }
 
+func GetStartFromImport(start model.Start) (model.Start, bool, error) {
+
+	if start.Meeting == "" ||
+		start.Event == 0 {
+		return model.Start{}, false, fmt.Errorf("missing arguments"+
+			"(expected: meeting; event; ..."+
+			"got: '%s', '%d')",
+			start.Meeting,
+			start.Event)
+	}
+
+	var existing model.Start
+	var err error
+
+	// TODO: DSV Lane representation (0?)
+	if start.HeatNumber != 0 && start.Lane >= 0 {
+		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return model.Start{}, false, err
+			}
+		} else {
+			return existing, true, nil
+		}
+	}
+
+	if start.AthleteName == "" || start.AthleteYear == 0 {
+		return model.Start{}, false, fmt.Errorf("missing arguments"+
+			"(expected: athlete_name; athlete_year; ..."+
+			"got: '%s', '%d')",
+			start.AthleteName,
+			start.AthleteYear)
+	}
+
+	if start.AthleteMeetingId != 0 {
+		existing, err = GetStartByMeetingAndEventAndAthleteMeetingId(start.Meeting, start.Event, start.AthleteMeetingId)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return model.Start{}, false, err
+			}
+		} else {
+			return existing, true, nil
+		}
+	}
+
+	if start.AthleteName != "" && start.AthleteYear != 0 {
+		existing, err = GetStartByMeetingAndEventAndAthleteNameAndYear(start.Meeting, start.Event, start.AthleteName, start.AthleteYear)
+		if err != nil {
+			if err.Error() != "no entry found" {
+				return model.Start{}, false, err
+			}
+		} else {
+			return existing, true, nil
+		}
+	}
+
+	if start.AthleteName != "" && start.AthleteYear != 0 && athleteClient != nil {
+		athlete, found2, err2 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+		if err2 != nil {
+			return model.Start{}, false, err2
+		}
+		if found2 {
+			existing, err = GetStartByMeetingAndEventAndAthleteId(start.Meeting, start.Event, athlete.Identifier)
+			if err != nil {
+				if err.Error() != "no entry found" {
+					return model.Start{}, false, err
+				}
+			} else {
+				return existing, true, nil
+			}
+		}
+	}
+
+	return model.Start{}, false, nil
+}
+
 func ImportStart(start model.Start) (*model.Start, bool, error) {
 	// looks for existing:
 	// 		DSV 			(event, athleteMeetingId)
@@ -199,76 +275,16 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	// else:
 	//		update fields
 
-	if start.Meeting == "" ||
-		start.Event == 0 ||
-		start.AthleteTeamName == "" ||
-		start.AthleteName == "" ||
-		start.AthleteYear == 0 {
-		return nil, false, fmt.Errorf("missing arguments"+
-			"(expected: meeting; event; athlete_team_name; athlete_name; athlete_year; ..."+
-			"got: '%s', '%d', '%s', '%s', '%d')",
-			start.Meeting,
-			start.Event,
-			start.AthleteTeamName,
-			start.AthleteName,
-			start.AthleteYear)
-	}
-
-	var existing model.Start
 	var err error
-	found := false
-
-	if start.AthleteMeetingId != 0 {
-		existing, err = GetStartByMeetingAndEventAndAthleteMeetingId(start.Meeting, start.Event, start.AthleteMeetingId)
-		if err != nil {
-			if err.Error() != "no entry found" {
-				return nil, false, err
-			}
-		} else {
-			found = true
-		}
-	}
-
-	if !found && start.AthleteName != "" && start.AthleteYear != 0 {
-		existing, err = GetStartByMeetingAndEventAndAthleteNameAndYear(start.Meeting, start.Event, start.AthleteName, start.AthleteYear)
-		if err != nil {
-			if err.Error() != "no entry found" {
-				return nil, false, err
-			}
-		} else {
-			found = true
-		}
-	}
-
-	if !found && start.HeatNumber != 0 && start.Lane >= 0 {
-		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
-		if err != nil {
-			if err.Error() != "no entry found" {
-				return nil, false, err
-			}
-		} else {
-			found = true
-		}
-	}
-
-	if !found && start.AthleteName != "" && start.AthleteYear != 0 && athleteClient != nil {
-		athlete, found2, err2 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
-		if err2 != nil {
-			return nil, false, err2
-		}
-		if found2 {
-			existing, err = GetStartByMeetingAndEventAndAthleteId(start.Meeting, start.Event, athlete.Identifier)
-			if err != nil {
-				if err.Error() != "no entry found" {
-					return nil, false, err
-				}
-			} else {
-				found = true
-			}
-		}
-	}
+	existing, found, err := GetStartFromImport(start)
 
 	if !found {
+		if start.AthleteTeamName == "" {
+			return nil, false, fmt.Errorf("missing argument"+
+				"(expected: athlete_team_name; since start isn't existing ..."+
+				"got: '%s')",
+				start.AthleteTeamName)
+		}
 		// create start
 		// get athleteID
 		athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
@@ -360,4 +376,17 @@ func UpdateStart(start model.Start) (model.Start, error) {
 	}
 
 	return GetStartById(start.Identifier)
+}
+
+func UpdateStartSetDisqualification(startId primitive.ObjectID, disqualificationId primitive.ObjectID) error {
+	start, err := GetStartById(startId)
+	if err != nil {
+		return err
+	}
+	start.DisqualificationId = disqualificationId
+	_, err2 := UpdateStart(start)
+	if err2 != nil {
+		return err2
+	}
+	return nil
 }

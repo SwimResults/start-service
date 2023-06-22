@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -71,6 +72,25 @@ func RemoveDisqualificationById(id primitive.ObjectID) error {
 		return err
 	}
 	return nil
+}
+
+func ImportDisqualification(start model.Start, disqualification model.Disqualification) (*model.Disqualification, bool, error) {
+	existing, found, err := GetStartFromImport(start)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, false, fmt.Errorf("start with given information not found")
+	}
+	newDisqualification, err2 := AddDisqualification(disqualification)
+	if err2 != nil {
+		return &newDisqualification, false, err2
+	}
+	err3 := UpdateStartSetDisqualification(existing.Identifier, newDisqualification.Identifier)
+	if err3 != nil {
+		return nil, true, err3
+	}
+	return &newDisqualification, true, nil
 }
 
 func AddDisqualification(disqualification model.Disqualification) (model.Disqualification, error) {
