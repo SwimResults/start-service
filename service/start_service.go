@@ -296,6 +296,8 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 			start.AthleteName = first + " " + last
 		}
 		start.AthleteAlias = misc.Aliasify(start.AthleteName)
+
+		// save new start
 		newStart, err2 := AddStart(start)
 		if err2 != nil {
 			return nil, false, err2
@@ -322,6 +324,14 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	}
 	if existing.AthleteName == "" && start.AthleteName != "" {
 		existing.AthleteName = start.AthleteName
+		changed = true
+	}
+	if existing.Lane == 0 && start.Lane != 0 {
+		existing.Lane = start.Lane
+		changed = true
+	}
+	if existing.HeatNumber == 0 && start.HeatNumber != 0 {
+		existing.HeatNumber = start.HeatNumber
 		changed = true
 	}
 
