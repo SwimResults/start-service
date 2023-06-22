@@ -54,3 +54,27 @@ func (c *StartClient) ImportStart(start model.Start) (*model.Start, bool, error)
 	}
 	return newStart, res.StatusCode == http.StatusCreated, nil
 }
+
+func (c *StartClient) ImportResult(start model.Start, result model.Result) (*model.Result, bool, error) {
+	request := dto.ImportResultRequestDto{
+		Start:  start,
+		Result: result,
+	}
+
+	res, err := client.Post(c.apiUrl, "result/import", request)
+	if err != nil {
+		return nil, false, err
+	}
+	defer res.Body.Close()
+
+	newResult := &model.Result{}
+	err = json.NewDecoder(res.Body).Decode(newResult)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if res.StatusCode != http.StatusCreated {
+		return nil, false, fmt.Errorf("import result request returned: %d", res.StatusCode)
+	}
+	return newResult, res.StatusCode == http.StatusCreated, nil
+}

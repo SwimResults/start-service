@@ -361,6 +361,21 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	return &existing, false, nil
 }
 
+func ImportResult(start model.Start, result model.Result) (*model.Result, bool, error) {
+	existing, found, err := GetStartFromImport(start)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, false, fmt.Errorf("start with given information not found")
+	}
+	res, err2 := UpdateStartAddResult(existing.Identifier, result)
+	if err2 != nil {
+		return nil, false, err2
+	}
+	return &res, true, nil
+}
+
 func UpdateStart(start model.Start) (model.Start, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -389,4 +404,18 @@ func UpdateStartSetDisqualification(startId primitive.ObjectID, disqualification
 		return err2
 	}
 	return nil
+}
+
+func UpdateStartAddResult(startId primitive.ObjectID, result model.Result) (model.Result, error) {
+	start, err := GetStartById(startId)
+	if err != nil {
+		return model.Result{}, err
+	}
+	result.AddedAt = time.Now()
+	start.Results = append(start.Results, result)
+	_, err2 := UpdateStart(start)
+	if err2 != nil {
+		return model.Result{}, err2
+	}
+	return result, nil
 }
