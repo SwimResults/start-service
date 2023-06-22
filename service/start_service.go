@@ -197,7 +197,6 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	var existing model.Start
 	var err error
 
-	// TODO: DSV Lane representation (0?)
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
 		if err != nil {
