@@ -82,7 +82,15 @@ func ImportDisqualification(start model.Start, disqualification model.Disqualifi
 	if !found {
 		return nil, false, fmt.Errorf("start with given information not found")
 	}
-	newDisqualification, err2 := AddDisqualification(disqualification)
+
+	var newDisqualification model.Disqualification
+	var err2 error
+	if existing.DisqualificationId.IsZero() {
+		newDisqualification, err2 = AddDisqualification(disqualification)
+	} else {
+		disqualification.Identifier = existing.DisqualificationId
+		newDisqualification, err2 = UpdateDisqualification(disqualification)
+	}
 	if err2 != nil {
 		return &newDisqualification, false, err2
 	}
