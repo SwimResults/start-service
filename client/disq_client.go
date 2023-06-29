@@ -18,12 +18,13 @@ func NewDisqualificationClient(url string) *DisqualificationClient {
 	return &DisqualificationClient{apiUrl: url}
 }
 
-func (c *DisqualificationClient) ImportDisqualification(start model.Start, reason string, timeOfAnnouncement time.Time) (*model.Disqualification, bool, error) {
+func (c *DisqualificationClient) ImportDisqualification(start model.Start, reason string, disqType string, timeOfAnnouncement time.Time) (*model.Disqualification, bool, error) {
 	request := dto.ImportDisqualificationRequestDto{
 		Start: start,
 		Disqualification: model.Disqualification{
 			Reason:           reason,
 			AnnouncementTime: timeOfAnnouncement,
+			Type:             disqType,
 		},
 	}
 
