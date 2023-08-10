@@ -3,10 +3,12 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
 
@@ -17,12 +19,16 @@ func heatService(database *mongo.Database) {
 }
 
 func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
+	return getHeatsByBsonDocumentWithOptions(d, options.FindOptions{}, true)
+}
+
+func getHeatsByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, fetchDelay bool) ([]model.Heat, error) {
 	var heats []model.Heat
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	cursor, err := heatCollection.Find(ctx, d)
+	cursor, err := heatCollection.Find(ctx, d, &fOps)
 	if err != nil {
 		return []model.Heat{}, err
 	}
@@ -31,6 +37,23 @@ func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
 	for cursor.Next(ctx) {
 		var heat model.Heat
 		cursor.Decode(&heat)
+
+		// set delay
+		if !heat.FinishedAt.IsZero() {
+			heat.StartDelayEstimation = heat.FinishedAt
+		} else {
+			if heat.StartDelayEstimation.IsZero() {
+				// no time information in current heat, calculating delay
+				if fetchDelay {
+					delay, e := getDelayForHeat(heat.Event, heat.Number)
+					if e == nil {
+						// add delay to estimation
+						heat.StartEstimation.Add(*delay)
+					}
+				}
+			}
+		}
+
 		heats = append(heats, heat)
 	}
 
@@ -41,8 +64,12 @@ func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
 	return heats, nil
 }
 
-func getHeatByBsonDocument(d primitive.D) (model.Heat, error) {
-	heats, err := getHeatsByBsonDocument(d)
+func getHeatByBsonDocument(d interface{}) (model.Heat, error) {
+	return getHeatByBsonDocumentWithOptions(d, options.FindOptions{}, true)
+}
+
+func getHeatByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, fetchDelay bool) (model.Heat, error) {
+	heats, err := getHeatsByBsonDocumentWithOptions(d, fOps, fetchDelay)
 	if err != nil {
 		return model.Heat{}, err
 	}
@@ -67,6 +94,60 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
+}
+
+// duration with positive number, if heat is delayed
+func getDelayForHeat(event int, heatNumber int) (delay *time.Duration, err error) {
+
+	fmt.Println("need to fetch delay")
+
+	var t1 time.Time
+	var t2 time.Time
+
+	heat, err1 := getHeatByBsonDocumentWithOptions(
+		// ((smaller event) OR (same event, smaller heat)) AND ((start_delay_estimation exists) OR (finished_at exists))
+		bson.M{
+			"$and": []interface{}{
+				bson.M{
+					"$or": []interface{}{
+						bson.M{
+							"event": bson.M{"$lt": event},
+						},
+						bson.M{
+							"event": event,
+							"heat":  bson.M{"$lt": heatNumber},
+						},
+					},
+				},
+				bson.M{
+					"$or": []interface{}{
+						bson.M{"start_delay_estimation": bson.M{"$exists": true}},
+						bson.M{"finished_at": bson.M{"$exists": true}},
+					},
+				},
+			},
+		}, *options.Find().SetLimit(1).SetSort(bson.D{{"event", -1}, {"number", -1}}), false)
+
+	if err1 != nil {
+		fmt.Println(err1.Error())
+		return nil, err1
+	}
+
+	fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
+
+	t1 = heat.StartEstimation
+
+	if !heat.FinishedAt.IsZero() {
+		t2 = heat.FinishedAt
+	} else if !heat.StartDelayEstimation.IsZero() {
+		t2 = heat.StartDelayEstimation
+	} else {
+		return nil, errors.New("no delay found")
+	}
+
+	*delay = t2.Sub(t1)
+
+	return delay, nil
 }
 
 func RemoveHeatById(id primitive.ObjectID) error {
