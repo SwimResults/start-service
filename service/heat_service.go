@@ -39,8 +39,8 @@ func getHeatsByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, 
 		cursor.Decode(&heat)
 
 		// set delay
-		if !heat.FinishedAt.IsZero() {
-			heat.StartDelayEstimation = heat.FinishedAt
+		if !heat.StartAt.IsZero() {
+			heat.StartDelayEstimation = heat.StartAt
 		} else {
 			if heat.StartDelayEstimation.IsZero() {
 				// no time information in current heat, calculating delay
@@ -105,7 +105,7 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 	var t2 time.Time
 
 	heat, err1 := getHeatByBsonDocumentWithOptions(
-		// ((smaller event) OR (same event, smaller heat)) AND ((start_delay_estimation exists) OR (finished_at exists))
+		// ((smaller event) OR (same event, smaller heat)) AND ((start_delay_estimation exists) OR (started_at exists))
 		bson.M{
 			"$and": []interface{}{
 				bson.M{"meeting": meeting},
@@ -123,7 +123,7 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 				bson.M{
 					"$or": []interface{}{
 						bson.M{"start_delay_estimation": bson.M{"$exists": true}},
-						bson.M{"finished_at": bson.M{"$exists": true}},
+						bson.M{"start_at": bson.M{"$exists": true}},
 					},
 				},
 			},
@@ -149,8 +149,8 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 
 	t1 = heat.StartEstimation
 
-	if !heat.FinishedAt.IsZero() {
-		t2 = heat.FinishedAt
+	if !heat.StartAt.IsZero() {
+		t2 = heat.StartAt
 	} else if !heat.StartDelayEstimation.IsZero() {
 		t2 = heat.StartDelayEstimation
 	} else {
