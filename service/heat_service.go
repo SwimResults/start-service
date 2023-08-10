@@ -45,10 +45,10 @@ func getHeatsByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, 
 			if heat.StartDelayEstimation.IsZero() {
 				// no time information in current heat, calculating delay
 				if fetchDelay {
-					delay, e := getDelayForHeat(heat.Event, heat.Number)
+					delay, e := getDelayForHeat(heat.Meeting, heat.Event, heat.Number)
 					if e == nil {
 						// add delay to estimation
-						heat.StartEstimation.Add(*delay)
+						heat.StartDelayEstimation = heat.StartEstimation.Add(*delay)
 					}
 				}
 			}
@@ -97,7 +97,7 @@ func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) 
 }
 
 // duration with positive number, if heat is delayed
-func getDelayForHeat(event int, heatNumber int) (delay *time.Duration, err error) {
+func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Duration, err error) {
 
 	fmt.Println("need to fetch delay")
 
@@ -108,14 +108,15 @@ func getDelayForHeat(event int, heatNumber int) (delay *time.Duration, err error
 		// ((smaller event) OR (same event, smaller heat)) AND ((start_delay_estimation exists) OR (finished_at exists))
 		bson.M{
 			"$and": []interface{}{
+				bson.M{"meeting": meeting},
 				bson.M{
 					"$or": []interface{}{
 						bson.M{
 							"event": bson.M{"$lt": event},
 						},
 						bson.M{
-							"event": event,
-							"heat":  bson.M{"$lt": heatNumber},
+							"event":  event,
+							"number": bson.M{"$lt": heatNumber},
 						},
 					},
 				},
@@ -126,11 +127,22 @@ func getDelayForHeat(event int, heatNumber int) (delay *time.Duration, err error
 					},
 				},
 			},
-		}, *options.Find().SetLimit(1).SetSort(bson.D{{"event", -1}, {"number", -1}}), false)
+		},
+		//options.FindOptions{},
+		*options.Find().SetLimit(1).SetSort(bson.D{{"event", -1}, {"number", -1}}),
+		false)
 
 	if err1 != nil {
 		fmt.Println(err1.Error())
 		return nil, err1
+	}
+
+	if heat.Event == 0 && heat.Number == 0 {
+		return nil, errors.New("invalid head found")
+	}
+
+	if heat.StartEstimation.IsZero() {
+		return nil, errors.New("invalid head found")
 	}
 
 	fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
@@ -145,9 +157,9 @@ func getDelayForHeat(event int, heatNumber int) (delay *time.Duration, err error
 		return nil, errors.New("no delay found")
 	}
 
-	*delay = t2.Sub(t1)
+	de := t2.Sub(t1)
 
-	return delay, nil
+	return &de, nil
 }
 
 func RemoveHeatById(id primitive.ObjectID) error {
