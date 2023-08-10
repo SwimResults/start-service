@@ -41,6 +41,18 @@ func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
 	return heats, nil
 }
 
+func getHeatByBsonDocument(d primitive.D) (model.Heat, error) {
+	heats, err := getHeatsByBsonDocument(d)
+	if err != nil {
+		return model.Heat{}, err
+	}
+	if len(heats) <= 0 {
+		return model.Heat{}, errors.New("no entry found")
+	}
+
+	return heats[0], nil
+}
+
 func GetHeats() ([]model.Heat, error) {
 	return getHeatsByBsonDocument(bson.D{})
 }
@@ -50,43 +62,11 @@ func GetHeatsByMeeting(id string) ([]model.Heat, error) {
 }
 
 func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
-	var heat model.Heat
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	cursor, err := heatCollection.Find(ctx, bson.D{{"_id", id}})
-	if err != nil {
-		return model.Heat{}, err
-	}
-	defer cursor.Close(ctx)
-
-	if cursor.Next(ctx) {
-		cursor.Decode(&heat)
-		return heat, nil
-	}
-
-	return model.Heat{}, errors.New("no entry with given id found")
+	return getHeatByBsonDocument(bson.D{{"_id", id}})
 }
 
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
-	var heat model.Heat
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	cursor, err := heatCollection.Find(ctx, bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
-	if err != nil {
-		return model.Heat{}, err
-	}
-	defer cursor.Close(ctx)
-
-	if cursor.Next(ctx) {
-		cursor.Decode(&heat)
-		return heat, nil
-	}
-
-	return model.Heat{}, errors.New("no entry with given number and event found in meeting")
+	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
 }
 
 func RemoveHeatById(id primitive.ObjectID) error {
@@ -120,7 +100,7 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 
 	existing, err := GetHeatByNumber(heat.Meeting, heat.Event, heat.Number)
 	if err != nil {
-		if err.Error() == "no entry with given number and event found in meeting" {
+		if err.Error() == "no entry found" {
 			newHeat, err2 := AddHeat(heat)
 			if err2 != nil {
 				return model.Heat{}, false, err2
