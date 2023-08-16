@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -94,6 +95,26 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
+}
+
+func GetHeatInfoByMeetingAndEvent(meeting string, event int) (dto.EventHeatInfoDto, error) {
+	var info dto.EventHeatInfoDto
+	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
+	if err != nil {
+		return dto.EventHeatInfoDto{}, err
+	}
+	info.Amount = len(heats)
+	return info, nil
+}
+
+func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
+	var info dto.MeetingHeatInfoDto
+	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}})
+	if err != nil {
+		return dto.MeetingHeatInfoDto{}, err
+	}
+	info.Amount = len(heats)
+	return info, nil
 }
 
 // duration with positive number, if heat is delayed

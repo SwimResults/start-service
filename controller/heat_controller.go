@@ -8,12 +8,15 @@ import (
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"strconv"
 )
 
 func heatController() {
 	router.GET("/heat", getHeats)
 	router.GET("/heat/:id", getHeat)
 	router.GET("/heat/meet/:meet_id", getHeatsByMeeting)
+	router.GET("/heat/meet/:meet_id/info", getHeatInfoByMeeting)
+	router.GET("/heat/meet/:meet_id/event/:event_id/info", getHeatInfoByMeetingAndEvent)
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
@@ -64,6 +67,46 @@ func getHeatsByMeeting(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, heats)
+}
+
+func getHeatInfoByMeeting(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	info, err := service.GetHeatInfoByMeeting(meeting)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, info)
+}
+
+func getHeatInfoByMeetingAndEvent(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event, err1 := strconv.Atoi(c.Param("event_id"))
+	if err1 != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
+		return
+	}
+
+	info, err := service.GetHeatInfoByMeetingAndEvent(meeting, event)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, info)
 }
 
 func removeHeat(c *gin.Context) {
