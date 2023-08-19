@@ -20,6 +20,7 @@ func startController() {
 	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id/lane/:lane_number", getStartByMeetingAndEventAndHeatAndLane)
 	router.GET("/start/meet/:meet_id/event/:event_id", getStartsByMeetingAndEvent)
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
+	router.GET("/start/meet/:meet_id/current", getCurrentStarts)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
 
 	router.POST("/start", addStart)
@@ -188,6 +189,23 @@ func getStartsByAthlete(c *gin.Context) {
 	}
 
 	start, err := service.GetStartsByAthlete(athlete)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, start)
+}
+
+func getCurrentStarts(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	start, err := service.GetCurrentStarts(meeting)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

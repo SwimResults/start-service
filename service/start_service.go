@@ -153,6 +153,15 @@ func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"athlete", athlete}})
 }
 
+func GetCurrentStarts(meeting string) ([]model.Start, error) {
+	heat, err := GetCurrentHeat(meeting)
+	if err != nil {
+		return []model.Start{}, err
+	}
+
+	return GetStartsByMeetingAndEventAndHeat(meeting, heat.Event, heat.Number)
+}
+
 func RemoveStartById(id primitive.ObjectID) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

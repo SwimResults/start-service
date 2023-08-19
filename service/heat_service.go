@@ -81,6 +81,27 @@ func getHeatByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, f
 	return heats[0], nil
 }
 
+func GetCurrentHeat(meeting string) (model.Heat, error) {
+	queryOptions := options.FindOptions{}
+	queryOptions.SetSort(bson.D{{"start_at", -1}, {"finished_at", -1}})
+
+	return getHeatByBsonDocumentWithOptions(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"meeting": meeting},
+				bson.M{
+					"$or": []interface{}{
+						bson.M{"start_at": bson.M{"$exists": true}},
+						bson.M{"finished_at": bson.M{"$exists": true}},
+					},
+				},
+			},
+		},
+		*options.Find().SetLimit(1).SetSort(bson.D{{"start_at", -1}, {"finished_at", -1}}),
+		true,
+	)
+}
+
 func GetHeats() ([]model.Heat, error) {
 	return getHeatsByBsonDocument(bson.D{})
 }
