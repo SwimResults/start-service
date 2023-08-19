@@ -20,15 +20,20 @@ func startService(database *mongo.Database) {
 }
 
 func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
+
+	queryOptions := options.FindOptions{}
+	queryOptions.SetSort(bson.D{{"event", 1}, {"heat_number", 1}, {"lane", 1}})
+
+	return getStartsByBsonDocumentWithOptions(d, &queryOptions)
+}
+
+func getStartsByBsonDocumentWithOptions(d interface{}, queryOptions *options.FindOptions) ([]model.Start, error) {
 	var starts []model.Start
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	queryOptions := options.FindOptions{}
-	queryOptions.SetSort(bson.D{{"event", 1}, {"heat_number", 1}, {"lane", 1}})
-
-	cursor, err := collection.Find(ctx, d, &queryOptions)
+	cursor, err := collection.Find(ctx, d, queryOptions)
 	if err != nil {
 		return []model.Start{}, err
 	}
@@ -52,7 +57,15 @@ func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
 }
 
 func getStartByBsonDocument(d interface{}) (model.Start, error) {
-	starts, err := getStartsByBsonDocument(d)
+
+	queryOptions := options.FindOptions{}
+	queryOptions.SetSort(bson.D{{"event", 1}, {"heat_number", 1}, {"lane", 1}})
+
+	return getStartByBsonDocumentWithOptions(d, &queryOptions)
+}
+
+func getStartByBsonDocumentWithOptions(d interface{}, queryOptions *options.FindOptions) (model.Start, error) {
+	starts, err := getStartsByBsonDocumentWithOptions(d, queryOptions)
 
 	if err != nil {
 		return model.Start{}, err
