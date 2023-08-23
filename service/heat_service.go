@@ -212,7 +212,7 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 
 	de := t2t.Sub(t1t)
 
-	fmt.Printf("delay: %dmin\n", de.Minutes())
+	fmt.Printf("delay: %fmin\n", de.Minutes())
 
 	return &de, nil
 }
