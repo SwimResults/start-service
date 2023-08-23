@@ -205,10 +205,14 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 	t1s := t1.Format(layout)
 	t2s := t2.Format(layout)
 
+	fmt.Printf("start at: %s – estimation: %s\n", t2s, t1s)
+
 	t1t, _ := time.Parse(layout, t1s)
 	t2t, _ := time.Parse(layout, t2s)
 
 	de := t2t.Sub(t1t)
+
+	fmt.Printf("delay: %dmin\n", de.Minutes())
 
 	return &de, nil
 }
