@@ -82,8 +82,8 @@ func getHeatByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, f
 }
 
 func GetCurrentHeat(meeting string) (model.Heat, error) {
-	queryOptions := options.FindOptions{}
-	queryOptions.SetSort(bson.D{{"start_at", -1}, {"finished_at", -1}})
+
+	// TODO current heat sorting by start_at AND finished_at (UNION)
 
 	return getHeatByBsonDocumentWithOptions(
 		bson.M{

@@ -3,7 +3,7 @@ module github.com/swimresults/start-service
 go 1.18
 
 require (
-	github.com/gin-gonic/gin v1.9.1
+	github.com/gin-gonic/gin v1.8.1
 	github.com/sirupsen/logrus v1.9.3
 	go.mongodb.org/mongo-driver v1.10.0
 )
@@ -29,7 +29,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/swimresults/athlete-service v1.5.0 // indirect
-	github.com/swimresults/service-core v0.4.0 // indirect
+	github.com/swimresults/service-core v0.5.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
