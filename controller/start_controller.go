@@ -15,6 +15,8 @@ func startController() {
 	router.GET("/start", getStarts)
 	router.GET("/start/:id", getStart)
 
+	router.GET("/start/amount", getStartsAmount)
+
 	router.GET("/start/meet/:meet_id", getStartsByMeeting)
 	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id", getStartsByMeetingAndEventAndHeat)
 	router.GET("/start/meet/:meet_id/event/:event_id/heat/:heat_id/lane/:lane_number", getStartByMeetingAndEventAndHeatAndLane)
@@ -32,6 +34,16 @@ func startController() {
 
 func getStarts(c *gin.Context) {
 	starts, err := service.GetStarts()
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, starts)
+}
+
+func getStartsAmount(c *gin.Context) {
+	starts, err := service.GetStartsAmount()
 	if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
