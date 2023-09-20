@@ -375,6 +375,14 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		existing.AthleteName = start.AthleteName
 		changed = true
 	}
+	if existing.AthleteTeamName == "" && start.AthleteTeamName != "" {
+		existing.AthleteTeamName = start.AthleteTeamName
+		changed = true
+	}
+	if existing.AthleteYear == 0 && start.AthleteYear != 0 {
+		existing.AthleteYear = start.AthleteYear
+		changed = true
+	}
 	if existing.Lane == 0 && start.Lane != 0 {
 		existing.Lane = start.Lane
 		changed = true
