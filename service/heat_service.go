@@ -128,6 +128,40 @@ func GetHeatInfoByMeetingAndEvent(meeting string, event int) (dto.EventHeatInfoD
 	return info, nil
 }
 
+func GetHeatsAmountByMeetingAndEvent(meeting string, event int) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.Count().SetHint("_id_")
+	count, err := collection.CountDocuments(ctx, bson.D{{"meeting", meeting}, {"event", event}}, opts)
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+func GetHeatsByMeetingForEventList(meeting string) (dto.MeetingHeatsEventListDto, error) {
+	var info dto.MeetingHeatsEventListDto
+	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}, {"number", 1}})
+	if err != nil {
+		return dto.MeetingHeatsEventListDto{}, err
+	}
+
+	for _, heat := range heats {
+		var infoTile dto.MeetingHeatEventListDto
+		var err1 error
+		infoTile.EventNumber = heat.Event
+		infoTile.FirstHeat = heat
+		infoTile.Amount, err1 = GetHeatsAmountByMeetingAndEvent(meeting, heat.Event)
+		if err1 != nil {
+			return dto.MeetingHeatsEventListDto{}, err
+		}
+		info.Events = append(info.Events, infoTile)
+	}
+
+	return info, nil
+}
+
 func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 	var info dto.MeetingHeatInfoDto
 	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}})
