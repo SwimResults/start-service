@@ -133,7 +133,7 @@ func GetHeatsAmountByMeetingAndEvent(meeting string, event int) (int, error) {
 	defer cancel()
 
 	opts := options.Count().SetHint("_id_")
-	count, err := collection.CountDocuments(ctx, bson.D{{"meeting", meeting}, {"event", event}}, opts)
+	count, err := heatCollection.CountDocuments(ctx, bson.D{{"meeting", meeting}, {"event", event}}, opts)
 	if err != nil {
 		return 0, err
 	}
