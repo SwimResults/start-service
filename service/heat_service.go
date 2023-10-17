@@ -275,6 +275,7 @@ func AddHeat(heat model.Heat) (model.Heat, error) {
 	return GetHeatById(r.InsertedID.(primitive.ObjectID))
 }
 
+// ImportHeat imports a heat; returns the created or existing heat and a boolean if it was created or already present
 func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 	if heat.Meeting == "" || heat.Event == 0 || heat.Number == 0 {
 		return model.Heat{}, false, errors.New("missing arguments (meeting/event/heat is needed)")
@@ -299,6 +300,10 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 	}
 	if !heat.StartAt.IsZero() {
 		existing.StartAt = heat.StartAt
+		changed = true
+	}
+	if !heat.FinishedAt.IsZero() {
+		existing.FinishedAt = heat.FinishedAt
 		changed = true
 	}
 	if changed {

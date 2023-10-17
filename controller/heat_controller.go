@@ -22,7 +22,6 @@ func heatController() {
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
-	router.POST("/heat/times/import", importTimes)
 
 	router.PUT("/heat", updateHeat)
 	router.DELETE("/heat/:id", removeHeat)
@@ -197,10 +196,6 @@ func importHeat(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, heat)
 	}
 
-}
-
-func importTimes(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
 }
 
 func updateHeat(c *gin.Context) {
