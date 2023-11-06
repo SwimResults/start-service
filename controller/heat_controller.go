@@ -22,6 +22,7 @@ func heatController() {
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
+	router.POST("/heat/:id/time", updateHeatTime)
 
 	router.PUT("/heat", updateHeat)
 	router.DELETE("/heat/:id", removeHeat)
@@ -206,6 +207,28 @@ func updateHeat(c *gin.Context) {
 	}
 
 	r, err := service.UpdateHeat(heat)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, r)
+}
+
+func updateHeatTime(c *gin.Context) {
+	id, convErr := primitive.ObjectIDFromHex(c.Param("id"))
+	if convErr != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given id was not of type ObjectID"})
+		return
+	}
+
+	var request dto.HeatTimesRequestDto
+	if err := c.BindJSON(&request); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	r, err := service.UpdateHeatTimes(id, request.Time, request.Type)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

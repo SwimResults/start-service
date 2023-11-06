@@ -327,3 +327,24 @@ func UpdateHeat(heat model.Heat) (model.Heat, error) {
 
 	return GetHeatById(heat.Identifier)
 }
+
+func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (model.Heat, error) {
+	heat, err := GetHeatById(id)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	switch timeType {
+	case "start_delay_estimation":
+		heat.StartDelayEstimation = time
+		break
+	case "start_at":
+		heat.StartAt = time
+		break
+	case "finished_at":
+		heat.FinishedAt = time
+		break
+	}
+
+	return UpdateHeat(heat)
+}
