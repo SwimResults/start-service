@@ -275,6 +275,7 @@ func AddHeat(heat model.Heat) (model.Heat, error) {
 	return GetHeatById(r.InsertedID.(primitive.ObjectID))
 }
 
+// ImportHeat imports a heat; returns the created or existing heat and a boolean if it was created or already present
 func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 	if heat.Meeting == "" || heat.Event == 0 || heat.Number == 0 {
 		return model.Heat{}, false, errors.New("missing arguments (meeting/event/heat is needed)")
@@ -301,6 +302,10 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		existing.StartAt = heat.StartAt
 		changed = true
 	}
+	if !heat.FinishedAt.IsZero() {
+		existing.FinishedAt = heat.FinishedAt
+		changed = true
+	}
 	if changed {
 		existing, err = UpdateHeat(existing)
 		if err != nil {
@@ -321,4 +326,25 @@ func UpdateHeat(heat model.Heat) (model.Heat, error) {
 	}
 
 	return GetHeatById(heat.Identifier)
+}
+
+func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (model.Heat, error) {
+	heat, err := GetHeatById(id)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	switch timeType {
+	case "start_delay_estimation":
+		heat.StartDelayEstimation = time
+		break
+	case "start_at":
+		heat.StartAt = time
+		break
+	case "finished_at":
+		heat.FinishedAt = time
+		break
+	}
+
+	return UpdateHeat(heat)
 }
