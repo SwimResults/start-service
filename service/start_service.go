@@ -320,14 +320,25 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		}
 		// create start
 		// get athleteID
-		athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
-		if err3 != nil {
-			return nil, false, err3
+		if !start.IsRelay {
+			athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+			if err3 != nil {
+				return nil, false, err3
+			}
+			if !f {
+				return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
+			}
+			start.Athlete = athlete.Identifier
+
+			// set name values
+			if hasComma, first, last := misc.ExtractNames(start.AthleteName); hasComma {
+				start.AthleteName = first + " " + last
+			}
+			start.AthleteAlias = misc.Aliasify(start.AthleteName)
+
+		} else {
+			start.Athlete = primitive.ObjectID{}
 		}
-		if !f {
-			return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
-		}
-		start.Athlete = athlete.Identifier
 
 		// get teamID
 		team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
@@ -339,12 +350,6 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		}
 
 		start.AthleteTeam = team.Identifier
-
-		// set name values
-		if hasComma, first, last := misc.ExtractNames(start.AthleteName); hasComma {
-			start.AthleteName = first + " " + last
-		}
-		start.AthleteAlias = misc.Aliasify(start.AthleteName)
 
 		// save new start
 		newStart, err2 := AddStart(start)

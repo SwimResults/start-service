@@ -12,6 +12,7 @@ type Start struct {
 	HeatNumber         int                `json:"heat_number" bson:"heat,omitempty"`                                // PDF 						(update on import)
 	Heat               Heat               `json:"heat,omitempty" bson:"-"`                                          // automatically
 	Lane               int                `json:"lane,omitempty" bson:"lane,omitempty"`                             // PDF 						(update on import)
+	IsRelay            bool               `json:"is_relay,omitempty" bson:"is_relay,omitempty"`                     // PDF 						(update on import)
 	Athlete            primitive.ObjectID `json:"athlete,omitempty" bson:"athlete,omitempty"`                       // PDF + DSV (via athlete)
 	AthleteMeetingId   int                `json:"athlete_meeting_id,omitempty" bson:"athlete_meeting_id,omitempty"` // DSV						(update on import)
 	AthleteName        string             `json:"athlete_name,omitempty" bson:"athlete_name,omitempty"`             // PDF + DSV (+ Livetiming)
