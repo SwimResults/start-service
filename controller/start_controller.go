@@ -24,6 +24,7 @@ func startController() {
 	router.GET("/start/meet/:meet_id/athlete/:ath_id", getStartsByMeetingAndAthlete)
 	router.GET("/start/meet/:meet_id/current", getCurrentStarts)
 	router.GET("/start/meet/:meet_id/livestream", getLivestreamData)
+	router.GET("/start/meet/:meet_id/livestream/state", getLivestreamHeatState)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
 
 	router.POST("/start", addStart)
@@ -236,6 +237,23 @@ func getLivestreamData(c *gin.Context) {
 	}
 
 	data, err := service.GetLivestreamData(meeting)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, data)
+}
+
+func getLivestreamHeatState(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	data, err := service.GetLivestreamHeatState(meeting)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

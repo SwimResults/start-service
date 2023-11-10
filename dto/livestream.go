@@ -26,3 +26,7 @@ type LivestreamStartDto struct {
 	Time     int `json:"time,omitempty"`
 	Distance int `json:"distance,omitempty"`
 }
+
+type LivestreamHeatStateDto struct {
+	State string `json:"state,omitempty"`
+}

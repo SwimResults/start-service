@@ -66,3 +66,22 @@ func GetLivestreamData(meeting string) (*dto.LivestreamDto, error) {
 
 	return &livestreamData, nil
 }
+
+func GetLivestreamHeatState(meeting string) (*dto.LivestreamHeatStateDto, error) {
+	heat, err := GetCurrentHeat(meeting)
+	if err != nil {
+		return nil, err
+	}
+
+	state := ""
+	if heat.FinishedAt.IsZero() {
+		state = "running"
+	} else {
+		state = "finished"
+	}
+
+	heatState := dto.LivestreamHeatStateDto{
+		State: state,
+	}
+	return &heatState, nil
+}
