@@ -98,6 +98,18 @@ func GetStartsAmount() (int, error) {
 	return int(count), nil
 }
 
+func GetStartsAmountByMeeting(meeting string) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.Count().SetHint("_id_")
+	count, err := collection.CountDocuments(ctx, bson.D{{"meeting", meeting}}, opts)
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
 func GetStartsByMeeting(meeting string) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"meeting", meeting}})
 }

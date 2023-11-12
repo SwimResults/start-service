@@ -14,6 +14,10 @@ import (
 func heatController() {
 	router.GET("/heat", getHeats)
 	router.GET("/heat/:id", getHeat)
+
+	router.GET("/heat/amount", getHeatsAmount)
+	router.GET("/heat/meet/:meet_id/amount", getHeatsAmountByMeeting)
+
 	router.GET("/heat/meet/:meet_id", getHeatsByMeeting)
 	router.GET("/heat/meet/:meet_id/event_list", getHeatsByMeetingForEventList)
 	router.GET("/heat/meet/:meet_id/info", getHeatInfoByMeeting)
@@ -52,6 +56,33 @@ func getHeat(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, heat)
+}
+
+func getHeatsAmount(c *gin.Context) {
+	starts, err := service.GetHeatsAmount()
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, starts)
+}
+
+func getHeatsAmountByMeeting(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	starts, err := service.GetHeatsAmountByMeeting(meeting)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, starts)
 }
 
 func getHeatsByMeeting(c *gin.Context) {
