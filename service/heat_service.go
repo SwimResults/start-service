@@ -118,6 +118,30 @@ func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) 
 	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
 }
 
+func GetHeatsAmount() (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.Count().SetHint("_id_")
+	count, err := heatCollection.CountDocuments(ctx, bson.D{}, opts)
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+func GetHeatsAmountByMeeting(meeting string) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	opts := options.Count().SetHint("_id_")
+	count, err := heatCollection.CountDocuments(ctx, bson.D{{"meeting", meeting}}, opts)
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
 func GetHeatInfoByMeetingAndEvent(meeting string, event int) (dto.EventHeatInfoDto, error) {
 	var info dto.EventHeatInfoDto
 	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
