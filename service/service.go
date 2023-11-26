@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	client2 "github.com/swimresults/athlete-service/client"
+	meetingClient "github.com/swimresults/meeting-service/client"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"os"
@@ -12,6 +13,7 @@ import (
 var client *mongo.Client
 var athleteClient *client2.AthleteClient
 var teamClient *client2.TeamClient
+var ageGroupClient *meetingClient.AgeGroupClient
 
 func Init(c *mongo.Client) {
 	database := c.Database(os.Getenv("SR_START_MONGO_DATABASE"))
@@ -21,6 +23,11 @@ func Init(c *mongo.Client) {
 	if athleteServiceUrl != "" {
 		athleteClient = client2.NewAthleteClient(athleteServiceUrl)
 		teamClient = client2.NewTeamClient(athleteServiceUrl)
+	}
+
+	meetingServiceUrl := os.Getenv("SR_START_MEETING_URL")
+	if meetingServiceUrl != "" {
+		ageGroupClient = meetingClient.NewAgeGroupClient(meetingServiceUrl)
 	}
 
 	startService(database)
