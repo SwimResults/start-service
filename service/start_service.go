@@ -187,7 +187,7 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 	var results []dto.EventStartResultRequestDto
 
 	queryOptions := options.FindOptions{}
-	queryOptions.SetSort(bson.D{{"disqualification_id", -1}, {"rank", 1}})
+	queryOptions.SetSort(bson.D{{"disqualification_id", 1}, {"rank", 1}})
 
 	for _, group := range *ageGroups {
 		if group.IsYear != true {
