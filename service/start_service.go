@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/swimresults/service-core/misc"
+	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -175,6 +176,46 @@ func GetStartByMeetingAndEventAndAthleteId(meeting string, event int, athleteId 
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 	return getStartsByBsonDocument(bson.D{{"athlete", athlete}})
+}
+
+func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.EventStartResultRequestDto, error) {
+	ageGroups, err := ageGroupClient.GetAgeGroupsForMeetingAndEvent(meeting, event)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []dto.EventStartResultRequestDto
+
+	queryOptions := options.FindOptions{}
+	queryOptions.SetSort(bson.D{{"disqualification_id", -1}, {"rank", 1}})
+
+	for _, group := range *ageGroups {
+		if group.IsYear != true {
+			continue
+		}
+
+		starts, err2 := getStartsByBsonDocumentWithOptions(
+			bson.M{
+				"$and": []interface{}{
+					bson.M{"meeting": meeting},
+					bson.M{"event": event},
+					bson.M{"athlete_year": bson.M{"$in": group.Ages}},
+				},
+			}, &queryOptions)
+
+		if err2 != nil {
+			return nil, err2
+		}
+
+		result := dto.EventStartResultRequestDto{
+			AgeGroup: group,
+			Starts:   starts,
+		}
+
+		results = append(results, result)
+	}
+
+	return results, nil
 }
 
 func GetCurrentStarts(meeting string) ([]model.Start, error) {
