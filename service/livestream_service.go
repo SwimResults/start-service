@@ -1,12 +1,8 @@
 package service
 
 import (
-	meetingClient "github.com/swimresults/meeting-service/client"
 	"github.com/swimresults/start-service/dto"
-	"os"
 )
-
-var ec = meetingClient.NewEventClient(os.Getenv("SR_IMPORT_MEETING_URL"))
 
 func GetLivestreamData(meeting string) (*dto.LivestreamDto, error) {
 	heat, err := GetCurrentHeat(meeting)
@@ -24,7 +20,7 @@ func GetLivestreamData(meeting string) (*dto.LivestreamDto, error) {
 		return nil, err
 	}
 
-	event, err := ec.GetEventByMeetingAndNumber(meeting, heat.Event)
+	event, err := eventClient.GetEventByMeetingAndNumber(meeting, heat.Event)
 	if err != nil {
 		return nil, err
 	}
