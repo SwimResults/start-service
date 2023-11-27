@@ -14,6 +14,7 @@ var client *mongo.Client
 var athleteClient *client2.AthleteClient
 var teamClient *client2.TeamClient
 var ageGroupClient *meetingClient.AgeGroupClient
+var eventClient *meetingClient.EventClient
 
 func Init(c *mongo.Client) {
 	database := c.Database(os.Getenv("SR_START_MONGO_DATABASE"))
@@ -28,6 +29,7 @@ func Init(c *mongo.Client) {
 	meetingServiceUrl := os.Getenv("SR_START_MEETING_URL")
 	if meetingServiceUrl != "" {
 		ageGroupClient = meetingClient.NewAgeGroupClient(meetingServiceUrl)
+		eventClient = meetingClient.NewEventClient(meetingServiceUrl)
 	}
 
 	startService(database)
