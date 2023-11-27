@@ -194,14 +194,14 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 			continue
 		}
 
-		starts, err2 := getStartsByBsonDocument(
+		starts, err2 := getStartsByBsonDocumentWithOptions(
 			bson.M{
 				"$and": []interface{}{
 					bson.M{"meeting": meeting},
 					bson.M{"event": event},
 					bson.M{"athlete_year": bson.M{"$in": group.Ages}},
 				},
-			})
+			}, &queryOptions)
 
 		if err2 != nil {
 			return nil, err2
