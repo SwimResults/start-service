@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/swimresults/start-service/dto"
+	"github.com/swimresults/start-service/model"
 )
 
 func GetLivestreamData(meeting string) (*dto.LivestreamDto, error) {
@@ -43,12 +44,19 @@ func GetLivestreamData(meeting string) (*dto.LivestreamDto, error) {
 	var livestreamStarts []dto.LivestreamStartDto
 
 	for _, start := range starts {
-		mostRecentResult := start.Results[len(start.Results)-1]
+		var mostRecentResult model.Result
+		var registration model.Result
+
+		if len(start.Results) > 0 {
+			mostRecentResult = start.Results[len(start.Results)-1]
+			registration = start.Results[0]
+		}
 
 		livestreamStart := dto.LivestreamStartDto{
-			Lane:     start.Lane,
-			Time:     int(mostRecentResult.Time.Milliseconds()),
-			Distance: mostRecentResult.LapMeters,
+			Lane:         start.Lane,
+			Time:         int(mostRecentResult.Time.Milliseconds()),
+			Registration: int(registration.Time.Milliseconds()),
+			Distance:     mostRecentResult.LapMeters,
 		}
 
 		livestreamStarts = append(livestreamStarts, livestreamStart)

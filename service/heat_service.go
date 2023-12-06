@@ -144,11 +144,11 @@ func GetHeatsAmountByMeeting(meeting string) (int, error) {
 
 func GetHeatInfoByMeetingAndEvent(meeting string, event int) (dto.EventHeatInfoDto, error) {
 	var info dto.EventHeatInfoDto
-	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
+	count, err := GetHeatsAmountByMeetingAndEvent(meeting, event)
 	if err != nil {
 		return dto.EventHeatInfoDto{}, err
 	}
-	info.Amount = len(heats)
+	info.Amount = count
 	return info, nil
 }
 
