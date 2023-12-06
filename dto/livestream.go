@@ -22,9 +22,10 @@ type LivestreamHeatDto struct {
 }
 
 type LivestreamStartDto struct {
-	Lane     int `json:"lane,omitempty"`
-	Time     int `json:"time,omitempty"`
-	Distance int `json:"distance,omitempty"`
+	Lane         int `json:"lane,omitempty"`
+	Time         int `json:"time,omitempty"`
+	Registration int `json:"registration,omitempty"`
+	Distance     int `json:"distance,omitempty"`
 }
 
 type LivestreamHeatStateDto struct {
