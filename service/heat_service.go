@@ -186,7 +186,7 @@ func GetHeatsByMeetingForEventList(meeting string) (dto.MeetingHeatsEventListDto
 	return info, nil
 }
 
-func GetHeatsByMeetingForEventListEvents(meeting string, events []string) (dto.MeetingHeatsEventListDto, error) {
+func GetHeatsByMeetingForEventListEvents(meeting string, events []int) (dto.MeetingHeatsEventListDto, error) {
 	var info dto.MeetingHeatsEventListDto
 	heats, err := getHeatsByBsonDocument(
 		bson.M{
