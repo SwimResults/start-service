@@ -109,8 +109,28 @@ func getHeatsByMeetingForEventList(c *gin.Context) {
 		c.String(http.StatusBadRequest, "no meeting id given")
 		return
 	}
+	events := c.QueryArray("events")
 
-	info, err := service.GetHeatsByMeetingForEventList(meeting)
+	fmt.Println(events)
+
+	var info dto.MeetingHeatsEventListDto
+	var err error
+
+	if len(events) == 0 {
+		info, err = service.GetHeatsByMeetingForEventList(meeting)
+	} else {
+		var eventNumbers []int
+		for _, event := range events {
+			i, err2 := strconv.Atoi(event)
+			if err2 != nil {
+				c.IndentedJSON(http.StatusNotFound, gin.H{"message": err2.Error()})
+				return
+			}
+			eventNumbers = append(eventNumbers, i)
+		}
+		info, err = service.GetHeatsByMeetingForEventListEvents(meeting, eventNumbers)
+	}
+
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return

@@ -19,7 +19,7 @@ func heatService(database *mongo.Database) {
 	heatCollection = database.Collection("heat")
 }
 
-func getHeatsByBsonDocument(d primitive.D) ([]model.Heat, error) {
+func getHeatsByBsonDocument(d interface{}) ([]model.Heat, error) {
 	return getHeatsByBsonDocumentWithOptions(d, options.FindOptions{}, true)
 }
 
@@ -167,6 +167,35 @@ func GetHeatsAmountByMeetingAndEvent(meeting string, event int) (int, error) {
 func GetHeatsByMeetingForEventList(meeting string) (dto.MeetingHeatsEventListDto, error) {
 	var info dto.MeetingHeatsEventListDto
 	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}, {"number", 1}})
+	if err != nil {
+		return dto.MeetingHeatsEventListDto{}, err
+	}
+
+	for _, heat := range heats {
+		var infoTile dto.MeetingHeatEventListDto
+		var err1 error
+		infoTile.EventNumber = heat.Event
+		infoTile.FirstHeat = heat
+		infoTile.Amount, err1 = GetHeatsAmountByMeetingAndEvent(meeting, heat.Event)
+		if err1 != nil {
+			return dto.MeetingHeatsEventListDto{}, err
+		}
+		info.Events = append(info.Events, infoTile)
+	}
+
+	return info, nil
+}
+
+func GetHeatsByMeetingForEventListEvents(meeting string, events []int) (dto.MeetingHeatsEventListDto, error) {
+	var info dto.MeetingHeatsEventListDto
+	heats, err := getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"meeting": meeting},
+				bson.M{"number": 1},
+				bson.M{"event": bson.M{"$in": events}},
+			},
+		})
 	if err != nil {
 		return dto.MeetingHeatsEventListDto{}, err
 	}
