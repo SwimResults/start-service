@@ -10,6 +10,7 @@ RUN mkdir /app/logs
 
 ENV SR_START_PORT=8080
 ENV TZ=Europe/Berlin
+RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 EXPOSE 8080
 
