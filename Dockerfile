@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.16-alpine
+FROM golang:1.16-c
 
 WORKDIR /app
 
@@ -9,6 +9,7 @@ RUN chmod +x /app/service
 RUN mkdir /app/logs
 
 ENV SR_START_PORT=8080
+ENV TZ=Europe/Berlin
 
 EXPOSE 8080
 
