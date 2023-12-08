@@ -9,6 +9,10 @@ RUN chmod +x /app/service
 RUN mkdir /app/logs
 
 ENV SR_START_PORT=8080
+ENV TZ=Europe/Berlin
+
+RUN apk add tzdata
+RUN ln -s /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
 EXPOSE 8080
 
