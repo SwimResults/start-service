@@ -21,7 +21,7 @@ type AthleteRegistration struct {
 	AthleteId          primitive.ObjectID  `json:"athlete_id,omitempty" bson:"athlete_id,omitempty"`
 	AthleteFirstName   string              `json:"athlete_first_name,omitempty" bson:"athlete_first_name,omitempty"`
 	AthleteLastName    string              `json:"athlete_last_name,omitempty" bson:"athlete_last_name,omitempty"`
-	AthleteYear        string              `json:"athlete_year,omitempty" bson:"athlete_year,omitempty"`
+	AthleteYear        int                 `json:"athlete_year,omitempty" bson:"athlete_year,omitempty"`
 	StartRegistrations []StartRegistration `json:"start_registrations" bson:"start_registrations"`
 }
 
