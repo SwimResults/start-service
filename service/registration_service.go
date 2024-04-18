@@ -114,7 +114,7 @@ func UpdateRegistration(registration model.Registration) (model.Registration, er
 
 	registration.UpdatedAt = time.Now()
 
-	_, err := disqualificationCollection.ReplaceOne(ctx, bson.D{{"_id", registration.Identifier}}, registration)
+	_, err := registrationCollection.ReplaceOne(ctx, bson.D{{"_id", registration.Identifier}}, registration)
 	if err != nil {
 		return model.Registration{}, err
 	}
