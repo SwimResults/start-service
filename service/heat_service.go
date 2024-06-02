@@ -46,7 +46,7 @@ func getHeatsByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, 
 			if heat.StartDelayEstimation.IsZero() {
 				// no time information in current heat, calculating delay
 				if fetchDelay {
-					delay, e := getDelayForHeat(heat.Meeting, heat.Event, heat.Number)
+					delay, e := getDelayForHeat(heat)
 					if e == nil {
 						// add delay to estimation
 						heat.StartDelayEstimation = heat.StartEstimation.Add(*delay)
@@ -227,7 +227,7 @@ func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 
 // returns delay of previous heat with delay information as time.Duration
 // positive number, if heat is delayed
-func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Duration, err error) {
+func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 
 	fmt.Println("need to fetch delay")
 
@@ -238,8 +238,9 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 		// ((smaller event) OR (same event, smaller heat)) AND ((start_delay_estimation exists) OR (started_at exists))
 		bson.M{
 			"$and": []interface{}{
-				bson.M{"meeting": meeting},
-				bson.M{
+				bson.M{"meeting": heat.Meeting},
+				// old way of finding previous heats, but event numbers can be not in order
+				/*bson.M{
 					"$or": []interface{}{
 						bson.M{
 							"event": bson.M{"$lt": event},
@@ -249,6 +250,10 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 							"number": bson.M{"$lt": heatNumber},
 						},
 					},
+				},*/
+				// new way with time estimation…
+				bson.M{
+					"start_estimation": bson.M{"$lt": heat.StartEstimation},
 				},
 				bson.M{
 					"$or": []interface{}{
@@ -259,7 +264,8 @@ func getDelayForHeat(meeting string, event int, heatNumber int) (delay *time.Dur
 			},
 		},
 		//options.FindOptions{},
-		*options.Find().SetLimit(1).SetSort(bson.D{{"event", -1}, {"number", -1}}),
+		//*options.Find().SetLimit(1).SetSort(bson.D{{"event", -1}, {"number", -1}}),
+		*options.Find().SetLimit(1).SetSort(bson.D{{"start_estimation", -1}}),
 		false)
 
 	if err1 != nil {
