@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func heatController() {
@@ -26,6 +27,7 @@ func heatController() {
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
+	router.POST("/heat/meet/:meet_id/event/:event_id/start_estimation_date", updateHeatsStartEstimationDate)
 	router.POST("/heat/:id/time", updateHeatTime)
 
 	router.PUT("/heat", updateHeat)
@@ -286,4 +288,33 @@ func updateHeatTime(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, r)
+}
+
+func updateHeatsStartEstimationDate(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event, err1 := strconv.Atoi(c.Param("event_id"))
+	if err1 != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
+		return
+	}
+
+	var request time.Time
+	if err := c.BindJSON(&request); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, info)
 }

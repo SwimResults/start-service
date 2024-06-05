@@ -23,6 +23,7 @@ func Run() {
 	heatController()
 	disqualificationController()
 	resultController()
+	registrationController()
 
 	router.GET("/actuator", actuator)
 
