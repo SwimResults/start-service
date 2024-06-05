@@ -110,6 +110,10 @@ func GetHeatsByMeeting(id string) ([]model.Heat, error) {
 	return getHeatsByBsonDocument(bson.D{{"meeting", id}})
 }
 
+func GetHeatsByMeetingAndEvent(id string, event int) ([]model.Heat, error) {
+	return getHeatsByBsonDocument(bson.D{{"meeting", id}, {"event", event}})
+}
+
 func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"_id", id}})
 }
@@ -404,6 +408,43 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 		heat.FinishedAt = time
 		break
 	}
+
+	return UpdateHeat(heat)
+}
+
+func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t time.Time) ([]model.Heat, error) {
+	heats, err := GetHeatsByMeetingAndEvent(meeting, event)
+	if err != nil {
+		return []model.Heat{}, err
+	}
+
+	var savedHeats []model.Heat
+
+	for _, heat := range heats {
+		t2 := heat.StartEstimation
+
+		heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), t2.Location())
+
+		saved, err := UpdateHeat(heat)
+		if err != nil {
+			return []model.Heat{}, err
+		}
+
+		savedHeats = append(savedHeats, saved)
+	}
+
+	return savedHeats, nil
+}
+
+func UpdateHeatEstimationDate(id primitive.ObjectID, t time.Time) (model.Heat, error) {
+	heat, err := GetHeatById(id)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	t2 := heat.StartEstimation
+
+	heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), t2.Location())
 
 	return UpdateHeat(heat)
 }
