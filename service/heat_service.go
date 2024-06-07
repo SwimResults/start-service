@@ -103,9 +103,16 @@ func GetCurrentHeat(meeting string) (model.Heat, error) {
 }
 
 func GetCurrentAndNextHeat(meeting string) (*dto.CurrentNextHeatDto, error) {
+	var dto dto.CurrentNextHeatDto
 	current, err := GetCurrentHeat(meeting)
 	if err != nil {
-		return nil, err
+		if err.Error() == "no entry found" {
+			dto.Current = nil
+		} else {
+			return nil, err
+		}
+	} else {
+		dto.Current = &current
 	}
 
 	next, err := getHeatByBsonDocumentWithOptions(
@@ -121,13 +128,16 @@ func GetCurrentAndNextHeat(meeting string) (*dto.CurrentNextHeatDto, error) {
 		true,
 	)
 	if err != nil {
-		return nil, err
+		if err.Error() == "no entry found" {
+			dto.Next = nil
+		} else {
+			return nil, err
+		}
+	} else {
+		dto.Next = &next
 	}
 
-	return &dto.CurrentNextHeatDto{
-		Current: current,
-		Next:    next,
-	}, nil
+	return &dto, nil
 }
 
 func GetHeats() ([]model.Heat, error) {
