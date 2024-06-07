@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func heatController() {
@@ -304,13 +303,13 @@ func updateHeatsStartEstimationDate(c *gin.Context) {
 		return
 	}
 
-	var request time.Time
+	var request dto.HeatEstimationDateRequest
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request)
+	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request.Time)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
