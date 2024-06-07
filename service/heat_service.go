@@ -102,6 +102,44 @@ func GetCurrentHeat(meeting string) (model.Heat, error) {
 	)
 }
 
+func GetCurrentAndNextHeat(meeting string) (*dto.CurrentNextHeatDto, error) {
+	var dto dto.CurrentNextHeatDto
+	current, err := GetCurrentHeat(meeting)
+	if err != nil {
+		if err.Error() == "no entry found" {
+			dto.Current = nil
+		} else {
+			return nil, err
+		}
+	} else {
+		dto.Current = &current
+	}
+
+	next, err := getHeatByBsonDocumentWithOptions(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"meeting": meeting},
+				bson.M{
+					"start_estimation": bson.M{"$gt": current.StartEstimation},
+				},
+			},
+		},
+		*options.Find().SetLimit(1).SetSort(bson.D{{"start_estimation", 1}}),
+		true,
+	)
+	if err != nil {
+		if err.Error() == "no entry found" {
+			dto.Next = nil
+		} else {
+			return nil, err
+		}
+	} else {
+		dto.Next = &next
+	}
+
+	return &dto, nil
+}
+
 func GetHeats() ([]model.Heat, error) {
 	return getHeatsByBsonDocument(bson.D{})
 }

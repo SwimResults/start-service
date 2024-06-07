@@ -23,6 +23,7 @@ func heatController() {
 	router.GET("/heat/meet/:meet_id/info", getHeatInfoByMeeting)
 	router.GET("/heat/meet/:meet_id/event/:event_id/info", getHeatInfoByMeetingAndEvent)
 	router.GET("/heat/meet/:meet_id/current", getCurrentHeat)
+	router.GET("/heat/meet/:meet_id/current_next", getCurrentNextHeat)
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
@@ -189,6 +190,23 @@ func getCurrentHeat(c *gin.Context) {
 	}
 
 	heat, err := service.GetCurrentHeat(meeting)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, heat)
+}
+
+func getCurrentNextHeat(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	heat, err := service.GetCurrentAndNextHeat(meeting)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
