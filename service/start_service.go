@@ -123,7 +123,7 @@ func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([
 	}
 
 	sort.Slice(starts, func(i, j int) bool {
-		return starts[i].Heat.StartEstimation.After(starts[j].Heat.StartEstimation)
+		return starts[i].Heat.StartEstimation.Before(starts[j].Heat.StartEstimation)
 	})
 	return starts, nil
 }
@@ -190,7 +190,7 @@ func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 	}
 
 	sort.Slice(starts, func(i, j int) bool {
-		return starts[i].Heat.StartEstimation.After(starts[j].Heat.StartEstimation)
+		return starts[i].Heat.StartEstimation.Before(starts[j].Heat.StartEstimation)
 	})
 	return starts, nil
 }
