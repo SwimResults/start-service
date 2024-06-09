@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"sort"
 	"time"
 )
 
@@ -116,7 +117,15 @@ func GetStartsByMeeting(meeting string) ([]model.Start, error) {
 }
 
 func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}})
+	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}})
+	if err != nil {
+		return []model.Start{}, err
+	}
+
+	sort.Slice(starts, func(i, j int) bool {
+		return starts[i].Heat.StartEstimation.After(starts[j].Heat.StartEstimation)
+	})
+	return starts, nil
 }
 
 func GetStartsByMeetingAndEvent(meeting string, event int) ([]model.Start, error) {
@@ -175,7 +184,15 @@ func GetStartByMeetingAndEventAndAthleteId(meeting string, event int, athleteId 
 }
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"athlete", athlete}})
+	starts, err := getStartsByBsonDocument(bson.D{{"athlete", athlete}})
+	if err != nil {
+		return []model.Start{}, err
+	}
+
+	sort.Slice(starts, func(i, j int) bool {
+		return starts[i].Heat.StartEstimation.After(starts[j].Heat.StartEstimation)
+	})
+	return starts, nil
 }
 
 func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.EventStartResultRequestDto, error) {
