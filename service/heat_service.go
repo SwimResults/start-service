@@ -152,6 +152,16 @@ func GetHeatsByMeetingAndEvent(id string, event int) ([]model.Heat, error) {
 	return getHeatsByBsonDocument(bson.D{{"meeting", id}, {"event", event}})
 }
 
+func GetHeatsByMeetingAndEvents(id string, events []int) ([]model.Heat, error) {
+	return getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"meeting": id},
+				bson.M{"event": bson.M{"$in": events}},
+			},
+		})
+}
+
 func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"_id", id}})
 }
@@ -450,8 +460,18 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 	return UpdateHeat(heat)
 }
 
-func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t time.Time) ([]model.Heat, error) {
-	heats, err := GetHeatsByMeetingAndEvent(meeting, event)
+func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, events []int, t time.Time, updateTimeZone bool) ([]model.Heat, error) {
+	var heats []model.Heat
+	var err error
+	if len(events) <= 0 {
+		heats, err = GetHeatsByMeeting(meeting)
+		println("changing heat date and timezone for ALL events")
+	} else {
+		heats, err = GetHeatsByMeetingAndEvents(meeting, events)
+		println("changing heat date and timezone for events:")
+		println(events)
+	}
+
 	if err != nil {
 		return []model.Heat{}, err
 	}
@@ -461,7 +481,14 @@ func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t tim
 	for _, heat := range heats {
 		t2 := heat.StartEstimation
 
-		heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), t2.Location())
+		var timezone *time.Location
+		if updateTimeZone {
+			timezone = t.Location()
+		} else {
+			timezone = t2.Location()
+		}
+
+		heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), timezone)
 
 		saved, err := UpdateHeat(heat)
 		if err != nil {

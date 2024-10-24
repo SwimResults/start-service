@@ -27,7 +27,7 @@ func heatController() {
 
 	router.POST("/heat", addHeat)
 	router.POST("/heat/import", importHeat)
-	router.POST("/heat/meet/:meet_id/event/:event_id/start_estimation_date", updateHeatsStartEstimationDate)
+	router.POST("/heat/meet/:meet_id/events/start_estimation_date", updateHeatsStartEstimationDate)
 	router.POST("/heat/:id/time", updateHeatTime)
 
 	router.PUT("/heat", updateHeat)
@@ -315,19 +315,13 @@ func updateHeatsStartEstimationDate(c *gin.Context) {
 		return
 	}
 
-	event, err1 := strconv.Atoi(c.Param("event_id"))
-	if err1 != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
-		return
-	}
-
 	var request dto.HeatEstimationDateRequest
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request.Time)
+	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, request.Events, request.Time, request.UpdateTimeZone)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
