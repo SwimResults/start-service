@@ -450,7 +450,7 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 	return UpdateHeat(heat)
 }
 
-func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t time.Time) ([]model.Heat, error) {
+func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t time.Time, updateTimeZone bool) ([]model.Heat, error) {
 	heats, err := GetHeatsByMeetingAndEvent(meeting, event)
 	if err != nil {
 		return []model.Heat{}, err
@@ -461,7 +461,14 @@ func UpdateHeatsEstimationDateByMeetingAndEvent(meeting string, event int, t tim
 	for _, heat := range heats {
 		t2 := heat.StartEstimation
 
-		heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), t2.Location())
+		var timezone *time.Location
+		if updateTimeZone {
+			timezone = t.Location()
+		} else {
+			timezone = t2.Location()
+		}
+
+		heat.StartEstimation = time.Date(t.Year(), t.Month(), t.Day(), t2.Hour(), t2.Minute(), t2.Second(), t2.Nanosecond(), timezone)
 
 		saved, err := UpdateHeat(heat)
 		if err != nil {

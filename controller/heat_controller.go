@@ -327,7 +327,7 @@ func updateHeatsStartEstimationDate(c *gin.Context) {
 		return
 	}
 
-	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request.Time)
+	info, err := service.UpdateHeatsEstimationDateByMeetingAndEvent(meeting, event, request.Time, request.UpdateTimeZone)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
