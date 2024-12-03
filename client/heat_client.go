@@ -22,7 +22,7 @@ func (c *HeatClient) ImportHeat(heat model.Heat) (*model.Heat, bool, error) {
 		Heat: heat,
 	}
 
-	res, err := client.Post(c.apiUrl, "heat/import", request)
+	res, err := client.Post(c.apiUrl, "heat/import", request, nil)
 	if err != nil {
 		return nil, false, err
 	}

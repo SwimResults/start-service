@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/swimresults/start-service/controller"
+	"github.com/swimresults/start-service/notification"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -39,6 +40,7 @@ func main() {
 	}
 	defer file.Close()
 	service.Init(client)
+	notification.Init()
 	controller.Run()
 
 	if err := client.Disconnect(ctx); err != nil {
