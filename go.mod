@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/swimresults/athlete-service v0.2.0
+	github.com/swimresults/athlete-service v0.2.1
 	github.com/swimresults/meeting-service v0.7.0
 	github.com/swimresults/service-core v0.6.1
 	github.com/swimresults/user-service v0.1.0
