@@ -8,13 +8,14 @@ require (
 	github.com/swimresults/athlete-service v0.2.3
 	github.com/swimresults/meeting-service v0.7.1
 	github.com/swimresults/service-core v0.6.2
-	github.com/swimresults/user-service v0.1.2
+	github.com/swimresults/user-service v0.1.3
 	go.mongodb.org/mongo-driver v1.13.0
 )
 
 require (
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
