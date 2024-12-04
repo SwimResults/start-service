@@ -15,7 +15,6 @@ func Init() {
 
 	if serviceKey == "" {
 		fmt.Println("no security for inter-service communication given! Please set SR_SERVICE_KEY.")
-		return
 	}
 
 	userServiceUrl := os.Getenv("SR_START_USER_URL")
