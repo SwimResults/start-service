@@ -28,7 +28,7 @@ func (c *DisqualificationClient) ImportDisqualification(start model.Start, reaso
 		},
 	}
 
-	res, err := client.Post(c.apiUrl, "disqualification/import", request)
+	res, err := client.Post(c.apiUrl, "disqualification/import", request, nil)
 	if err != nil {
 		return nil, false, err
 	}

@@ -18,7 +18,7 @@ func NewStartClient(url string) *StartClient {
 }
 
 func (c *StartClient) Actuator() (string, error) {
-	res, err := client.Get(c.apiUrl, "actuator", nil)
+	res, err := client.Get(c.apiUrl, "actuator", nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +37,7 @@ func (c *StartClient) ImportStart(start model.Start) (*model.Start, bool, error)
 		Start: start,
 	}
 
-	res, err := client.Post(c.apiUrl, "start/import", request)
+	res, err := client.Post(c.apiUrl, "start/import", request, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -61,7 +61,7 @@ func (c *StartClient) ImportResult(start model.Start, result model.Result) (*mod
 		Result: result,
 	}
 
-	res, err := client.Post(c.apiUrl, "result/import", request)
+	res, err := client.Post(c.apiUrl, "result/import", request, nil)
 	if err != nil {
 		return nil, false, err
 	}

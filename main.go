@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/swimresults/start-service/controller"
+	"github.com/swimresults/start-service/notification"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -31,7 +32,7 @@ func main() {
 	min := 1000000
 	max := 9999999
 	rnd := rand.Intn(max-min) + min
-	filename := fmt.Sprintf("logs/out-%d.log", rnd)
+	filename := fmt.Sprintf("logs/out-%d.log\n", rnd)
 
 	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err == nil {
@@ -39,6 +40,7 @@ func main() {
 	}
 	defer file.Close()
 	service.Init(client)
+	notification.Init()
 	controller.Run()
 
 	if err := client.Disconnect(ctx); err != nil {

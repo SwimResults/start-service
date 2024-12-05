@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/swimresults/service-core/misc"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
+	"github.com/swimresults/start-service/notification"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -456,6 +458,19 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 		heat.FinishedAt = time
 		break
 	}
+
+	return UpdateHeat(heat)
+}
+
+func SetHeatStartToNowByNumber(meeting string, event int, number int) (model.Heat, error) {
+	heat, err := GetHeatByNumber(meeting, event, number)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	heat.StartAt = misc.TimeNow()
+
+	go notification.BroadcastHeatStart(meeting, event, number, int(heat.StartEstimation.Sub(heat.StartAt).Seconds()))
 
 	return UpdateHeat(heat)
 }
