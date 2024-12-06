@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/swimresults/start-service/model"
+	"github.com/swimresults/start-service/notification"
 	"time"
 )
 
@@ -43,12 +44,14 @@ func StartNotificationMainLoop() {
 
 				// notify own athlete
 				for _, start := range starts {
-					fmt.Printf("Dein Start in 15 Minuten: Wettkampf %d, Lauf: %d, Bahn: %d \n", start.Event, start.HeatNumber, start.Lane)
+					//fmt.Printf("Dein Start in 15 Minuten: Wettkampf %d, Lauf: %d, Bahn: %d \n", start.Event, start.HeatNumber, start.Lane)
+					notification.SendStartNotificationForAthlete(start)
 				}
 
 				// notify favourites athlete
 				for _, start := range starts {
-					fmt.Printf("Dein Favorit '%s' startet in 15 Minuten: Wettkampf %d, Lauf: %d, Bahn: %d \n", start.AthleteName, start.Event, start.HeatNumber, start.Lane)
+					//fmt.Printf("Dein Favorit '%s' startet in 15 Minuten: Wettkampf %d, Lauf: %d, Bahn: %d \n", start.AthleteName, start.Event, start.HeatNumber, start.Lane)
+					notification.SendStartNotificationForFavourite(start)
 				}
 			case <-quit:
 				ticker.Stop()

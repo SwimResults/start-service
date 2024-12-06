@@ -70,6 +70,8 @@ github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXl
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/swimresults/athlete-service v0.2.3 h1:H7mVTTzsEhzEwfYJV77+HkLGvHLjWuQfshza/NVjkFM=
 github.com/swimresults/athlete-service v0.2.3/go.mod h1:Qle3iMWqW9uFWSCkjy7oFVMZ2uFry5tC2JX9BzKkpNg=
+github.com/swimresults/athlete-service v0.3.0 h1:j0JT29Xe1kFZVMUnNRVIxAuZzYKcuMzcYWKPFwv55xM=
+github.com/swimresults/athlete-service v0.3.0/go.mod h1:Qle3iMWqW9uFWSCkjy7oFVMZ2uFry5tC2JX9BzKkpNg=
 github.com/swimresults/meeting-service v0.7.1 h1:3PtRDBZO1JPk4Mvf2N8xsfT+1r/7AG+7anlo3FNNnEY=
 github.com/swimresults/meeting-service v0.7.1/go.mod h1:CMlCDEdbyLxA3MblOIvfxzD64hUKkYdSwfsupc+GLW4=
 github.com/swimresults/service-core v0.6.2 h1:eBUvXJMbCdTbo6HCbPHuN8W0K3UTlSwoG/GwYMbXt/s=
@@ -78,6 +80,8 @@ github.com/swimresults/user-service v0.1.2 h1:RNRR02i/OjMZCKPN1H+sBUF3wc71ewfj3W
 github.com/swimresults/user-service v0.1.2/go.mod h1:I1gugcXv6yxDPVZPpP4gKOwh+dT1Yku+ZDL6pDP3U2g=
 github.com/swimresults/user-service v0.1.3 h1:dhBIE+NkS7mqs2j7aK786/zi0iRGTQbvtVY5QVjoKXo=
 github.com/swimresults/user-service v0.1.3/go.mod h1:I1gugcXv6yxDPVZPpP4gKOwh+dT1Yku+ZDL6pDP3U2g=
+github.com/swimresults/user-service v0.1.4 h1:+8g2RbJ3OxWcDn4a59N4X9UpgViM3bB6HiGhSINFGM4=
+github.com/swimresults/user-service v0.1.4/go.mod h1:liyNW+g2Y1mTIA9VfBSnzgsZo5z0y6GeVqztC7Ey3CY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.11 h1:BMaWp1Bb6fHwEtbplGBGJ498wD+LKlNSl25MjdZY4dU=
