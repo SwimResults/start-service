@@ -31,8 +31,7 @@ func StartNotificationMainLoop() {
 						continue
 					}
 
-					heat.StartSoonNotified = true
-					heat, err := UpdateHeat(heat)
+					heat, err := UpdateHeatNotifiedState(heat.Identifier, true)
 					if err != nil {
 						fmt.Printf("error updating heat m: %s, e: %d, h: %d\n", heat.Meeting, heat.Event, heat.Number)
 						continue

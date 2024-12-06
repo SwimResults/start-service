@@ -488,6 +488,17 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 	return UpdateHeat(heat)
 }
 
+func UpdateHeatNotifiedState(id primitive.ObjectID, state bool) (model.Heat, error) {
+	heat, err := GetHeatById(id)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	heat.StartSoonNotified = state
+
+	return UpdateHeat(heat)
+}
+
 func SetHeatStartToNowByNumber(meeting string, event int, number int) (model.Heat, error) {
 	heat, err := GetHeatByNumber(meeting, event, number)
 	if err != nil {
