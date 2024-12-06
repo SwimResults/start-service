@@ -269,6 +269,20 @@ func GetHeatsByMeetingForEventListEvents(meeting string, events []int) (dto.Meet
 	return info, nil
 }
 
+func GetHeatsWithStartTodayAndNoNotification() ([]model.Heat, error) {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	tomorrow := today.Add(time.Hour * 24)
+	return getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"start_estimation": bson.M{"$gt": today, "$lt": tomorrow}},
+				bson.M{"start_soon_notified": false},
+			},
+		})
+}
+
+// GetHeatsWithStartWithinDurationAndNoNotification doesn't make sense cause delay estimation is not set
 func GetHeatsWithStartWithinDurationAndNoNotification(distance time.Duration) ([]model.Heat, error) {
 	now := time.Now()
 	then := now.Add(distance)

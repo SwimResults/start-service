@@ -18,12 +18,19 @@ func StartNotificationMainLoop() {
 				//  - not in the list of heats that has been notified about
 				fmt.Printf("heat notification loop run startet:\n")
 
-				heats, _ := GetHeatsWithStartWithinDurationAndNoNotification(time.Minute * 15)
+				heats, _ := GetHeatsWithStartTodayAndNoNotification()
+
+				now := time.Now()
+				then := now.Add(time.Minute * 15)
 
 				fmt.Printf("found: %d heats to notify about\n", len(heats))
 
 				var starts []model.Start
 				for _, heat := range heats {
+					if !(heat.StartDelayEstimation.After(now) && heat.StartDelayEstimation.Before(then)) {
+						continue
+					}
+
 					heat.StartSoonNotified = true
 					heat, err := UpdateHeat(heat)
 					if err != nil {
