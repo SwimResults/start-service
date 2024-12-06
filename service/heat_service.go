@@ -269,6 +269,18 @@ func GetHeatsByMeetingForEventListEvents(meeting string, events []int) (dto.Meet
 	return info, nil
 }
 
+func GetHeatsWithStartWithinDurationAndNoNotification(distance time.Duration) ([]model.Heat, error) {
+	now := time.Now()
+	then := now.Add(distance)
+	return getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"start_delay_estimation": bson.M{"$gt": now, "$lt": then}},
+				bson.M{"start_soon_notified": false},
+			},
+		})
+}
+
 func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 	var info dto.MeetingHeatInfoDto
 	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}})
