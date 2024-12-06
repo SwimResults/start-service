@@ -309,7 +309,7 @@ func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 // positive number, if heat is delayed
 func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 
-	fmt.Println("need to fetch delay")
+	//fmt.Println("need to fetch delay")
 
 	var t1 time.Time
 	var t2 time.Time
@@ -361,7 +361,7 @@ func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 		return nil, errors.New("invalid heat found")
 	}
 
-	fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
+	//fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
 
 	t1 = heat.StartEstimation
 
@@ -378,14 +378,14 @@ func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 	t1s := t1.Format(layout)
 	t2s := t2.Format(layout)
 
-	fmt.Printf("start at: %s – estimation: %s\n", t2s, t1s)
+	//fmt.Printf("start at: %s – estimation: %s\n", t2s, t1s)
 
 	t1t, _ := time.Parse(layout, t1s)
 	t2t, _ := time.Parse(layout, t2s)
 
 	de := t2t.Sub(t1t)
 
-	fmt.Printf("delay: %fmin\n", de.Minutes())
+	//fmt.Printf("delay: %fmin\n", de.Minutes())
 
 	return &de, nil
 }
