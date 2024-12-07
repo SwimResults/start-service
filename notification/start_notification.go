@@ -22,6 +22,7 @@ func SendStartNotificationForAthlete(start model.Start) {
 
 		if err != nil {
 			fmt.Printf("notify failed: %e\n", err)
+			return
 		}
 		println(response.Body)
 		println(response.ApnsId)
