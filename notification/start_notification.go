@@ -38,7 +38,7 @@ func SendStartNotificationForFavourite(start model.Start) {
 		start.Athlete,
 		fmt.Sprintf("Wettkampf %d", start.Event),
 		fmt.Sprintf("%s startet in ca. %f Minuten: Wettkampf in Lauf %d auf Bahn %d.", start.AthleteName, minutes, start.HeatNumber, start.Lane),
-		"athlete",
+		"favourites",
 		"time-sensitive",
 	)
 }
