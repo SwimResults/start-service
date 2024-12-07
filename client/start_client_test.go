@@ -1,5 +1,16 @@
 package client
 
+import (
+	"fmt"
+	"testing"
+)
+
+func TestStartClient_ImportStart(t *testing.T) {
+	var f float64
+	f = 5.54
+	fmt.Printf("%.f", f)
+}
+
 //
 //import (
 //	"fmt"
