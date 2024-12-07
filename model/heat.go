@@ -14,4 +14,5 @@ type Heat struct {
 	StartDelayEstimation time.Time          `json:"start_delay_estimation,omitempty" bson:"start_delay_estimation,omitempty"` // manual calculation of delay				estimation from delay
 	StartAt              time.Time          `json:"start_at,omitempty" bson:"start_at,omitempty"`                             // automatically		actual moment when it started
 	FinishedAt           time.Time          `json:"finished_at,omitempty" bson:"finished_at,omitempty"`                       // automatically		actual moment when it finished
+	StartSoonNotified    bool               `json:"start_soon_notified,omitempty" bson:"start_soon_notified"`                 // automatically		set when notified
 }

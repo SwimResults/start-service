@@ -168,6 +168,10 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"_id", id}})
 }
 
+func GetHeatByIdWithoutDelay(id primitive.ObjectID) (model.Heat, error) {
+	return getHeatByBsonDocumentWithOptions(bson.D{{"_id", id}}, *options.Find(), false)
+}
+
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
 }
@@ -269,6 +273,32 @@ func GetHeatsByMeetingForEventListEvents(meeting string, events []int) (dto.Meet
 	return info, nil
 }
 
+func GetHeatsWithStartTodayAndNoNotification() ([]model.Heat, error) {
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	tomorrow := today.Add(time.Hour * 24)
+	return getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"start_estimation": bson.M{"$gt": today, "$lt": tomorrow}},
+				bson.M{"start_soon_notified": false},
+			},
+		})
+}
+
+// GetHeatsWithStartWithinDurationAndNoNotification doesn't make sense cause delay estimation is not set
+func GetHeatsWithStartWithinDurationAndNoNotification(distance time.Duration) ([]model.Heat, error) {
+	now := time.Now()
+	then := now.Add(distance)
+	return getHeatsByBsonDocument(
+		bson.M{
+			"$and": []interface{}{
+				bson.M{"start_delay_estimation": bson.M{"$gt": now, "$lt": then}},
+				bson.M{"start_soon_notified": false},
+			},
+		})
+}
+
 func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 	var info dto.MeetingHeatInfoDto
 	heats, err := getHeatsByBsonDocument(bson.D{{"meeting", meeting}})
@@ -283,7 +313,7 @@ func GetHeatInfoByMeeting(meeting string) (dto.MeetingHeatInfoDto, error) {
 // positive number, if heat is delayed
 func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 
-	fmt.Println("need to fetch delay")
+	//fmt.Println("need to fetch delay")
 
 	var t1 time.Time
 	var t2 time.Time
@@ -335,7 +365,7 @@ func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 		return nil, errors.New("invalid heat found")
 	}
 
-	fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
+	//fmt.Printf("found heat: event %d, heat %d\n", heat.Event, heat.Number)
 
 	t1 = heat.StartEstimation
 
@@ -352,14 +382,14 @@ func getDelayForHeat(heat model.Heat) (delay *time.Duration, err error) {
 	t1s := t1.Format(layout)
 	t2s := t2.Format(layout)
 
-	fmt.Printf("start at: %s – estimation: %s\n", t2s, t1s)
+	//fmt.Printf("start at: %s – estimation: %s\n", t2s, t1s)
 
 	t1t, _ := time.Parse(layout, t1s)
 	t2t, _ := time.Parse(layout, t2s)
 
 	de := t2t.Sub(t1t)
 
-	fmt.Printf("delay: %fmin\n", de.Minutes())
+	//fmt.Printf("delay: %fmin\n", de.Minutes())
 
 	return &de, nil
 }
@@ -442,7 +472,7 @@ func UpdateHeat(heat model.Heat) (model.Heat, error) {
 }
 
 func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (model.Heat, error) {
-	heat, err := GetHeatById(id)
+	heat, err := GetHeatByIdWithoutDelay(id)
 	if err != nil {
 		return model.Heat{}, err
 	}
@@ -458,6 +488,17 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 		heat.FinishedAt = time
 		break
 	}
+
+	return UpdateHeat(heat)
+}
+
+func UpdateHeatNotifiedState(id primitive.ObjectID, state bool) (model.Heat, error) {
+	heat, err := GetHeatByIdWithoutDelay(id)
+	if err != nil {
+		return model.Heat{}, err
+	}
+
+	heat.StartSoonNotified = state
 
 	return UpdateHeat(heat)
 }

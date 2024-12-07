@@ -5,10 +5,10 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/swimresults/athlete-service v0.2.3
+	github.com/swimresults/athlete-service v0.3.0
 	github.com/swimresults/meeting-service v0.7.1
 	github.com/swimresults/service-core v0.6.2
-	github.com/swimresults/user-service v0.1.3
+	github.com/swimresults/user-service v0.1.5
 	go.mongodb.org/mongo-driver v1.13.0
 )
 
