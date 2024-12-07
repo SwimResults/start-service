@@ -168,6 +168,10 @@ func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"_id", id}})
 }
 
+func GetHeatByIdWithoutDelay(id primitive.ObjectID) (model.Heat, error) {
+	return getHeatByBsonDocumentWithOptions(bson.D{{"_id", id}}, *options.Find(), false)
+}
+
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
 	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
 }
@@ -468,7 +472,7 @@ func UpdateHeat(heat model.Heat) (model.Heat, error) {
 }
 
 func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (model.Heat, error) {
-	heat, err := GetHeatById(id)
+	heat, err := GetHeatByIdWithoutDelay(id)
 	if err != nil {
 		return model.Heat{}, err
 	}
@@ -489,7 +493,7 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 }
 
 func UpdateHeatNotifiedState(id primitive.ObjectID, state bool) (model.Heat, error) {
-	heat, err := GetHeatById(id)
+	heat, err := GetHeatByIdWithoutDelay(id)
 	if err != nil {
 		return model.Heat{}, err
 	}
