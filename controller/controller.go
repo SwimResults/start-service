@@ -26,6 +26,8 @@ func Run() {
 	resultController()
 	registrationController()
 
+	router.Use(stats.RequestStats())
+
 	router.GET("/actuator", actuator)
 	router.GET("/stats", func(c *gin.Context) {
 		c.JSON(http.StatusOK, stats.Report())
