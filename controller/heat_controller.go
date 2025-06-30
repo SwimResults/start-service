@@ -257,7 +257,7 @@ func importHeat(c *gin.Context) {
 
 	heat, r, err := service.ImportHeat(request.Heat)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

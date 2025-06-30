@@ -36,7 +36,7 @@ func TestStartClient_ImportStart(t *testing.T) {
 //
 //	r, _, e := client.ImportStart(start1)
 //	if e != nil {
-//		fmt.Printf(e.Error())
+//		fmt.Println(e)
 //	}
 //	fmt.Println(r)
 //	//fmt.Printf("id: %s, number: %d, start: %s", r.Identifier.String(), r.Number, r.StartEstimation.Format("15:04"))
@@ -63,7 +63,7 @@ func TestStartClient_ImportStart(t *testing.T) {
 //
 //	r, _, e := client.ImportResult(start1, result1)
 //	if e != nil {
-//		fmt.Printf(e.Error())
+//		fmt.Println(e)
 //	}
 //	fmt.Println(r)
 //	fmt.Printf("type: %s, time: %f", r.ResultType, r.Time.Seconds())
