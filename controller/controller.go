@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/semihalev/gin-stats"
 	"github.com/swimresults/start-service/service"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"net/http"
 	"os"
 )
@@ -19,6 +20,11 @@ func Run() {
 		fmt.Println("no application port given! Please set SR_START_PORT.")
 		return
 	}
+
+	p := ginprometheus.NewWithConfig(ginprometheus.Config{
+		Subsystem: "gin",
+	})
+	p.Use(router)
 
 	router.Use(stats.RequestStats())
 
