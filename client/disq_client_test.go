@@ -22,7 +22,7 @@ package client
 //
 //	r, _, e := client.ImportDisqualification(start1, "Guter Grund", time.Now())
 //	if e != nil {
-//		fmt.Printf(e.Error())
+//		fmt.Println(e)
 //	}
 //	fmt.Println(r)
 //	//fmt.Printf("id: %s, number: %d, start: %s", r.Identifier.String(), r.Number, r.StartEstimation.Format("15:04"))

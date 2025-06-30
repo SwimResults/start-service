@@ -345,7 +345,7 @@ func importStart(c *gin.Context) {
 
 	start, r, err := service.ImportStart(request.Start)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
