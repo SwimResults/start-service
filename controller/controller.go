@@ -20,13 +20,13 @@ func Run() {
 		return
 	}
 
+	router.Use(stats.RequestStats())
+
 	startController()
 	heatController()
 	disqualificationController()
 	resultController()
 	registrationController()
-
-	router.Use(stats.RequestStats())
 
 	router.GET("/actuator", actuator)
 	router.GET("/stats", func(c *gin.Context) {
