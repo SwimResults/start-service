@@ -167,8 +167,8 @@ func GetStartByMeetingAndEventAndAthleteNameAndYear(meeting string, event int, a
 			bson.M{"athlete_year": year},
 			bson.M{
 				"$or": []interface{}{
-					bson.M{"name": bson.M{"$regex": athleteName, "$options": "i"}},
-					bson.M{"alias": bson.M{"$regex": misc.Aliasify(athleteName), "$options": "i"}},
+					bson.M{"athlete_name": bson.M{"$regex": athleteName, "$options": "i"}},
+					bson.M{"athlete_alias": bson.M{"$regex": misc.Aliasify(athleteName), "$options": "i"}},
 				},
 			},
 		},
@@ -289,6 +289,17 @@ func AddStart(start model.Start) (model.Start, error) {
 
 func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 
+	var existing model.Start
+	var err error
+
+	if !start.Identifier.IsZero() {
+		existing, err = GetStartById(start.Identifier)
+		if err != nil {
+			return model.Start{}, false, errors.New("could not find start by identifier '" + start.Identifier.String() + "', even though it was given")
+		}
+		return existing, true, nil
+	}
+
 	if start.Meeting == "" ||
 		start.Event == 0 {
 		return model.Start{}, false, fmt.Errorf("missing arguments"+
@@ -297,9 +308,6 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 			start.Meeting,
 			start.Event)
 	}
-
-	var existing model.Start
-	var err error
 
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
@@ -391,14 +399,17 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		// create start
 		// get athleteID
 		if !start.IsRelay {
-			athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
-			if err3 != nil {
-				return nil, false, err3
+
+			if start.Athlete.IsZero() {
+				athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+				if err3 != nil {
+					return nil, false, err3
+				}
+				if !f {
+					return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
+				}
+				start.Athlete = athlete.Identifier
 			}
-			if !f {
-				return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
-			}
-			start.Athlete = athlete.Identifier
 
 			// set name values
 			if hasComma, first, last := misc.ExtractNames(start.AthleteName); hasComma {
@@ -410,16 +421,18 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 			start.Athlete = primitive.ObjectID{}
 		}
 
-		// get teamID
-		team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
-		if err4 != nil {
-			return nil, false, err4
-		}
-		if !f2 {
-			return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
-		}
+		if start.AthleteTeam.IsZero() {
+			// get teamID
+			team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
+			if err4 != nil {
+				return nil, false, err4
+			}
+			if !f2 {
+				return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
+			}
 
-		start.AthleteTeam = team.Identifier
+			start.AthleteTeam = team.Identifier
+		}
 
 		// save new start
 		newStart, err2 := AddStart(start)
