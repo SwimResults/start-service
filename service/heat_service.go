@@ -67,8 +67,8 @@ func getHeatsByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, 
 	return heats, nil
 }
 
-func getHeatByBsonDocument(d interface{}) (model.Heat, error) {
-	return getHeatByBsonDocumentWithOptions(d, options.FindOptions{}, true)
+func getHeatByBsonDocument(d interface{}, fetchDelay bool) (model.Heat, error) {
+	return getHeatByBsonDocumentWithOptions(d, options.FindOptions{}, fetchDelay)
 }
 
 func getHeatByBsonDocumentWithOptions(d interface{}, fOps options.FindOptions, fetchDelay bool) (model.Heat, error) {
@@ -165,7 +165,7 @@ func GetHeatsByMeetingAndEvents(id string, events []int) ([]model.Heat, error) {
 }
 
 func GetHeatById(id primitive.ObjectID) (model.Heat, error) {
-	return getHeatByBsonDocument(bson.D{{"_id", id}})
+	return getHeatByBsonDocument(bson.D{{"_id", id}}, true)
 }
 
 func GetHeatByIdWithoutDelay(id primitive.ObjectID) (model.Heat, error) {
@@ -173,7 +173,11 @@ func GetHeatByIdWithoutDelay(id primitive.ObjectID) (model.Heat, error) {
 }
 
 func GetHeatByNumber(meeting string, event int, number int) (model.Heat, error) {
-	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}})
+	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}}, true)
+}
+
+func GetHeatByNumberWithoutDelay(meeting string, event int, number int) (model.Heat, error) {
+	return getHeatByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"number", number}}, false)
 }
 
 func GetHeatsAmount() (int, error) {
@@ -424,7 +428,7 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		return model.Heat{}, false, errors.New("missing arguments (meeting/event/heat is needed)")
 	}
 
-	existing, err := GetHeatByNumber(heat.Meeting, heat.Event, heat.Number)
+	existing, err := GetHeatByNumberWithoutDelay(heat.Meeting, heat.Event, heat.Number)
 	if err != nil {
 		if err.Error() == "no entry found" {
 			newHeat, err2 := AddHeat(heat)
