@@ -22,6 +22,7 @@ func heatController() {
 	router.GET("/heat/meet/:meet_id/event_list", getHeatsByMeetingForEventList)
 	router.GET("/heat/meet/:meet_id/info", getHeatInfoByMeeting)
 	router.GET("/heat/meet/:meet_id/event/:event_id/info", getHeatInfoByMeetingAndEvent)
+	router.GET("/heat/meet/:meet_id/event/:event_id", getHeatsByMeetingAndEvent)
 	router.GET("/heat/meet/:meet_id/current", getCurrentHeat)
 	router.GET("/heat/meet/:meet_id/current_next", getCurrentNextHeat)
 
@@ -32,7 +33,9 @@ func heatController() {
 	router.POST("/heat/:id/time", updateHeatTime)
 
 	router.PUT("/heat", updateHeat)
+
 	router.DELETE("/heat/:id", removeHeat)
+	router.DELETE("/heat/meet/:meet_id/event/:event_id", deleteHeatsByMeetingAndEvent)
 }
 
 func getHeats(c *gin.Context) {
@@ -182,6 +185,29 @@ func getHeatInfoByMeetingAndEvent(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, info)
 }
 
+func getHeatsByMeetingAndEvent(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event, err1 := strconv.Atoi(c.Param("event_id"))
+	if err1 != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
+		return
+	}
+
+	heats, err := service.GetHeatsByMeetingAndEvent(meeting, event)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, heats)
+}
+
 func getCurrentHeat(c *gin.Context) {
 	meeting := c.Param("meet_id")
 
@@ -224,6 +250,29 @@ func removeHeat(c *gin.Context) {
 	}
 
 	err := service.RemoveHeatById(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusNoContent, "")
+}
+
+func deleteHeatsByMeetingAndEvent(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event, err := strconv.Atoi(c.Param("event_id"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
+		return
+	}
+
+	err = service.RemoveHeatsByMeetingAndEvent(meeting, event)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
