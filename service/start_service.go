@@ -268,6 +268,34 @@ func RemoveStartById(id primitive.ObjectID) error {
 	return nil
 }
 
+// RemoveStartsByMeetingAndEventAndHeat removes all starts for the given meeting, event and heat.
+// This is used when a heat is removed, so that no orphaned starts remain.
+// It also removes the disqualifications of the starts, if they exist.
+func RemoveStartsByMeetingAndEventAndHeat(meeting string, event int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var starts, err = GetStartsByMeetingAndEvent(meeting, event)
+	if err != nil {
+		return err
+	}
+
+	for _, start := range starts {
+		if !start.DisqualificationId.IsZero() {
+			var err = RemoveDisqualificationById(start.DisqualificationId)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	_, err = collection.DeleteMany(ctx, bson.D{{"meeting", meeting}, {"event", event}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func AddStart(start model.Start) (model.Start, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

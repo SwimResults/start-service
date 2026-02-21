@@ -33,7 +33,9 @@ func heatController() {
 	router.POST("/heat/:id/time", updateHeatTime)
 
 	router.PUT("/heat", updateHeat)
+
 	router.DELETE("/heat/:id", removeHeat)
+	router.DELETE("/heat/meet/:meet_id/event/:event_id", deleteHeatsByMeetingAndEvent)
 }
 
 func getHeats(c *gin.Context) {
@@ -248,6 +250,29 @@ func removeHeat(c *gin.Context) {
 	}
 
 	err := service.RemoveHeatById(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.IndentedJSON(http.StatusNoContent, "")
+}
+
+func deleteHeatsByMeetingAndEvent(c *gin.Context) {
+	meeting := c.Param("meet_id")
+
+	if meeting == "" {
+		c.String(http.StatusBadRequest, "no meeting id given")
+		return
+	}
+
+	event, err := strconv.Atoi(c.Param("event_id"))
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "given event_id is not of type number"})
+		return
+	}
+
+	err = service.RemoveHeatsByMeetingAndEvent(meeting, event)
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": err.Error()})
 		return
