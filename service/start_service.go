@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
+	"time"
+
 	"github.com/swimresults/service-core/misc"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
@@ -11,8 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"sort"
-	"time"
 )
 
 var collection *mongo.Collection
@@ -474,37 +475,103 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 
 	fmt.Printf("import of start '%s/%d/%d/%d', already present\n", start.Meeting, start.Event, start.HeatNumber, start.Lane)
 
+	// Normalize and enrich import values before applying updates.
+	if !start.IsRelay {
+		if hasComma, first, last := misc.ExtractNames(start.AthleteName); hasComma {
+			start.AthleteName = first + " " + last
+		}
+		if start.AthleteName != "" {
+			start.AthleteAlias = misc.Aliasify(start.AthleteName)
+		}
+
+		needsAthleteLookup := start.Athlete.IsZero() &&
+			start.AthleteName != "" &&
+			start.AthleteYear != 0 &&
+			(existing.AthleteName != start.AthleteName ||
+				existing.AthleteYear != start.AthleteYear ||
+				existing.Athlete.IsZero())
+
+		if needsAthleteLookup {
+			if athleteClient == nil {
+				return nil, false, fmt.Errorf("athlete client is not configured")
+			}
+			athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
+			if err3 != nil {
+				return nil, false, err3
+			}
+			if !f {
+				return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
+			}
+			start.Athlete = athlete.Identifier
+		}
+	}
+
+	needsTeamLookup := start.AthleteTeam.IsZero() &&
+		start.AthleteTeamName != "" &&
+		(existing.AthleteTeamName != start.AthleteTeamName || existing.AthleteTeam.IsZero())
+
+	if needsTeamLookup {
+		if teamClient == nil {
+			return nil, false, fmt.Errorf("team client is not configured")
+		}
+		team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
+		if err4 != nil {
+			return nil, false, err4
+		}
+		if !f2 {
+			return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
+		}
+
+		start.AthleteTeam = team.Identifier
+	}
+
 	changed := false
-	if existing.Certified == false && start.Certified == true {
+	if start.Certified == true && existing.Certified != start.Certified {
 		existing.Certified = start.Certified
 		changed = true
 	}
-	if existing.Rank == 0 && start.Rank != 0 {
+	if start.Rank != 0 && existing.Rank != start.Rank {
 		existing.Rank = start.Rank
 		changed = true
 	}
-	if existing.AthleteMeetingId == 0 && start.AthleteMeetingId != 0 {
+	if start.AthleteMeetingId != 0 && existing.AthleteMeetingId != start.AthleteMeetingId {
 		existing.AthleteMeetingId = start.AthleteMeetingId
 		changed = true
 	}
-	if existing.AthleteName == "" && start.AthleteName != "" {
+	if start.AthleteName != "" && existing.AthleteName != start.AthleteName {
 		existing.AthleteName = start.AthleteName
 		changed = true
 	}
-	if existing.AthleteTeamName == "" && start.AthleteTeamName != "" {
+	if start.AthleteAlias != "" && existing.AthleteAlias != start.AthleteAlias {
+		existing.AthleteAlias = start.AthleteAlias
+		changed = true
+	}
+	if !start.Athlete.IsZero() && existing.Athlete != start.Athlete {
+		existing.Athlete = start.Athlete
+		changed = true
+	}
+	if start.AthleteTeamName != "" && existing.AthleteTeamName != start.AthleteTeamName {
 		existing.AthleteTeamName = start.AthleteTeamName
 		changed = true
 	}
-	if existing.AthleteYear == 0 && start.AthleteYear != 0 {
+	if !start.AthleteTeam.IsZero() && existing.AthleteTeam != start.AthleteTeam {
+		existing.AthleteTeam = start.AthleteTeam
+		changed = true
+	}
+	if start.AthleteYear != 0 && existing.AthleteYear != start.AthleteYear {
 		existing.AthleteYear = start.AthleteYear
 		changed = true
 	}
-	if existing.Lane == 0 && start.Lane != 0 {
+	if start.Lane != 0 && existing.Lane != start.Lane {
 		existing.Lane = start.Lane
 		changed = true
 	}
-	if existing.HeatNumber == 0 && start.HeatNumber != 0 {
+	if start.HeatNumber != 0 && existing.HeatNumber != start.HeatNumber {
 		existing.HeatNumber = start.HeatNumber
+		changed = true
+	}
+	if start.Points != 0 && existing.Points != start.Points {
+		existing.Points = start.Points
 		changed = true
 	}
 
