@@ -574,6 +574,10 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		existing.Points = start.Points
 		changed = true
 	}
+	if start.Rank != 0 && existing.Rank > start.Rank {
+		existing.Rank = start.Rank
+		changed = true
+	}
 
 	if changed {
 		fmt.Printf("updating some values...\n")
