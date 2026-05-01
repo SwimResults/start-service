@@ -582,6 +582,13 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		existing.Rank = start.Rank
 		changed = true
 	}
+	// if ranks set in start import -> update given ranks. Assumes that RankingId is set
+	if len(start.Ranks) > 0 {
+		err3 := addOrUpdateRanksInStart(&existing, start.Ranks)
+		if err3 != nil {
+			return nil, false, err3
+		}
+	}
 
 	if changed {
 		fmt.Printf("updating some values...\n")
@@ -715,4 +722,28 @@ func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (mo
 		return model.Rank{}, false, err2
 	}
 	return rank, !found, nil
+}
+
+// addOrUpdateRanksInStart replaces ranks in a start but does not save the start
+func addOrUpdateRanksInStart(start *model.Start, ranks []model.Rank) error {
+	for _, rank := range ranks {
+		if rank.RankingId.IsZero() {
+			return fmt.Errorf("cannot add rank to start without ranking id set, use rank import to add new ranks  without knowing the ranking id beforehand")
+		}
+		rank.UpdatedAt = time.Now()
+		found := false
+		for i, r := range start.Ranks {
+			if r.RankingId == rank.RankingId {
+				start.Ranks[i] = rank
+				found = true
+				break
+			}
+		}
+		if !found {
+			rank.AddedAt = time.Now()
+			start.Ranks = append(start.Ranks, rank)
+		}
+	}
+
+	return nil
 }
