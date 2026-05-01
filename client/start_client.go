@@ -3,10 +3,11 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/swimresults/service-core/client"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
-	"net/http"
 )
 
 type StartClient struct {
@@ -77,4 +78,28 @@ func (c *StartClient) ImportResult(start model.Start, result model.Result) (*mod
 		return nil, false, fmt.Errorf("import result request returned: %d", res.StatusCode)
 	}
 	return newResult, res.StatusCode == http.StatusCreated, nil
+}
+
+func (c *StartClient) ImportRank(start model.Start, rank model.Rank) (*model.Rank, bool, error) {
+	request := dto.ImportRankRequestDto{
+		Start: start,
+		Rank:  rank,
+	}
+
+	res, err := client.Post(c.apiUrl, "rank/import", request, nil)
+	if err != nil {
+		return nil, false, err
+	}
+	defer res.Body.Close()
+
+	newRank := &model.Rank{}
+	err = json.NewDecoder(res.Body).Decode(newRank)
+	if err != nil {
+		return nil, false, err
+	}
+
+	if res.StatusCode != http.StatusCreated {
+		return nil, false, fmt.Errorf("import rank request returned: %d", res.StatusCode)
+	}
+	return newRank, res.StatusCode == http.StatusCreated, nil
 }
