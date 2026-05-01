@@ -597,11 +597,26 @@ func ImportResult(start model.Start, result model.Result) (*model.Result, bool, 
 	if !found {
 		return nil, false, fmt.Errorf("start with given information not found")
 	}
-	res, err2 := UpdateStartAddResult(existing.Identifier, result)
+	res, c, err2 := UpdateStartAddOrUpdateResult(existing.Identifier, result)
 	if err2 != nil {
 		return nil, false, err2
 	}
-	return &res, true, nil
+	return &res, c, nil
+}
+
+func ImportRank(start model.Start, rank model.Rank) (*model.Rank, bool, error) {
+	existing, found, err := GetStartFromImport(start)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, false, fmt.Errorf("start with given information not found")
+	}
+	res, c, err2 := UpdateStartAddOrUpdateRank(existing.Identifier, rank)
+	if err2 != nil {
+		return nil, false, err2
+	}
+	return &res, c, nil
 }
 
 func UpdateStart(start model.Start) (model.Start, error) {
@@ -634,16 +649,52 @@ func UpdateStartSetDisqualification(startId primitive.ObjectID, disqualification
 	return nil
 }
 
-func UpdateStartAddResult(startId primitive.ObjectID, result model.Result) (model.Result, error) {
+// UpdateStartAddOrUpdateResult bool is true if the result was added, false if it was updated
+func UpdateStartAddOrUpdateResult(startId primitive.ObjectID, result model.Result) (model.Result, bool, error) {
 	start, err := GetStartById(startId)
 	if err != nil {
-		return model.Result{}, err
+		return model.Result{}, false, err
 	}
 	result.AddedAt = time.Now()
-	start.Results = append(start.Results, result)
+	found := false
+	for i, r := range start.Results {
+		if r.ResultType == result.ResultType && r.LapMeters == result.LapMeters {
+			start.Results[i] = result
+			found = true
+			break
+		}
+	}
+	if !found {
+		start.Results = append(start.Results, result)
+	}
 	_, err2 := UpdateStart(start)
 	if err2 != nil {
-		return model.Result{}, err2
+		return model.Result{}, false, err2
 	}
-	return result, nil
+	return result, !found, nil
+}
+
+// UpdateStartAddOrUpdateRank bool is true if the rank was added, false if it was updated
+func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (model.Rank, bool, error) {
+	start, err := GetStartById(startId)
+	if err != nil {
+		return model.Rank{}, false, err
+	}
+	rank.AddedAt = time.Now()
+	found := false
+	for i, r := range start.Ranks {
+		if r.RankingId == rank.RankingId {
+			start.Ranks[i] = rank
+			found = true
+			break
+		}
+	}
+	if !found {
+		start.Ranks = append(start.Ranks, rank)
+	}
+	_, err2 := UpdateStart(start)
+	if err2 != nil {
+		return model.Rank{}, false, err2
+	}
+	return rank, !found, nil
 }

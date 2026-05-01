@@ -6,6 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/gin-gonic/gin v1.10.1
+	github.com/go-playground/assert/v2 v2.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swimresults/athlete-service v0.3.0
 	github.com/swimresults/meeting-service v0.8.0

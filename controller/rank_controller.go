@@ -9,18 +9,18 @@ import (
 	"github.com/swimresults/start-service/service"
 )
 
-func resultController() {
-	router.POST("/result/import", importResult)
+func rankController() {
+	router.POST("/rank/import", importRank)
 }
 
-func importResult(c *gin.Context) {
-	var request dto.ImportResultRequestDto
+func importRank(c *gin.Context) {
+	var request dto.ImportRankRequestDto
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	result, r, err := service.ImportResult(request.Start, request.Result)
+	rank, r, err := service.ImportRank(request.Start, request.Rank)
 	if err != nil {
 		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -28,9 +28,8 @@ func importResult(c *gin.Context) {
 	}
 
 	if r {
-		c.IndentedJSON(http.StatusCreated, result)
+		c.IndentedJSON(http.StatusCreated, rank)
 	} else {
-		c.IndentedJSON(http.StatusOK, result)
+		c.IndentedJSON(http.StatusOK, rank)
 	}
-
 }

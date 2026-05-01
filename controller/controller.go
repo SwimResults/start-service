@@ -2,11 +2,12 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/swimresults/start-service/service"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
-	"net/http"
-	"os"
 )
 
 var router = gin.Default()
@@ -29,6 +30,7 @@ func Run() {
 	heatController()
 	disqualificationController()
 	resultController()
+	rankController()
 	registrationController()
 
 	router.GET("/actuator", actuator)
