@@ -341,7 +341,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != rankingNotFoundError {
 				return model.Start{}, false, err
 			}
 		} else {
@@ -605,14 +605,17 @@ func ImportResult(start model.Start, result model.Result) (*model.Result, bool, 
 }
 
 func ImportRank(start model.Start, rank model.Rank) (*model.Rank, bool, error) {
-	existing, found, err := GetStartFromImport(start)
+	existingStart, found, err := GetStartFromImport(start)
 	if err != nil {
 		return nil, false, err
 	}
 	if !found {
 		return nil, false, fmt.Errorf("start with given information not found")
 	}
-	res, c, err2 := UpdateStartAddOrUpdateRank(existing.Identifier, rank)
+
+	existingRanking, found, err := GetRankingByMeetingAndEventAndAges()
+
+	res, c, err2 := UpdateStartAddOrUpdateRank(existingStart.Identifier, rank)
 	if err2 != nil {
 		return nil, false, err2
 	}

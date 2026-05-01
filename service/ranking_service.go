@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -19,7 +20,7 @@ func rankingService(database *mongo.Database) {
 	rankingCollection = database.Collection("ranking")
 }
 
-var rankingNotFoundError = "age group not found"
+var rankingNotFoundError = "ranking not found"
 
 func getRankingsByBsonDocument(d primitive.D) ([]model.Ranking, error) {
 	var rankings []model.Ranking
@@ -82,6 +83,18 @@ func GetRankingByMeetingAndEventAndAges(meeting string, event int, minAge string
 	return getRankingByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"min_age", minAge}, {"max_age", maxAge}})
 }
 
+func GetRankingByMeetingAndEventAndName(meeting string, event int, name string) (model.Ranking, error) {
+	return getRankingByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"name", name}})
+}
+
+func GetRankingByMeetingAndEventAndLenexId(meeting string, event int, lenexId string) (model.Ranking, error) {
+	return getRankingByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"lenex_id", lenexId}})
+}
+
+func GetRankingByMeetingAndEventAndDsvId(meeting string, event int, dsvId string) (model.Ranking, error) {
+	return getRankingByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"dsv_id", dsvId}})
+}
+
 func GetRankingById(id primitive.ObjectID) (model.Ranking, error) {
 	rankings, err := getRankingsByBsonDocument(bson.D{{"_id", id}})
 	if err != nil {
@@ -93,6 +106,79 @@ func GetRankingById(id primitive.ObjectID) (model.Ranking, error) {
 	}
 
 	return model.Ranking{}, errors.New("no entry with given id found")
+}
+
+// GetRankingByImport tries to find an existing ranking for the given ranking in the import, bool is true if ranking exists and false if it does not exist, error is set if an error occurs during the process
+func GetRankingByImport(ranking model.Ranking) (model.Ranking, bool, error) {
+
+	var existing model.Ranking
+	var err error
+
+	if !ranking.Identifier.IsZero() {
+		existing, err = GetRankingById(ranking.Identifier)
+		if err != nil {
+			return model.Ranking{}, false, errors.New("could not find ranking by identifier '" + ranking.Identifier.String() + "', even though it was given")
+		}
+		return existing, true, nil
+	}
+
+	if ranking.Meeting == "" ||
+		ranking.Event == 0 {
+		return model.Ranking{}, false, fmt.Errorf("missing arguments"+
+			"(expected: meeting; event; ..."+
+			"got: '%s', '%d')",
+			ranking.Meeting,
+			ranking.Event)
+	}
+
+	if ranking.LenexId != "" {
+		// find by lenex id
+		existing, err = GetRankingByMeetingAndEventAndLenexId(ranking.Meeting, ranking.Event, ranking.LenexId)
+		if err != nil {
+			if err.Error() != rankingNotFoundError {
+				return model.Ranking{}, false, err
+			}
+			return model.Ranking{}, false, nil
+		}
+
+		return existing, true, nil
+	}
+
+	if ranking.DsvId != "" {
+		// find by dsv id
+		existing, err = GetRankingByMeetingAndEventAndDsvId(ranking.Meeting, ranking.Event, ranking.DsvId)
+		if err != nil {
+			if err.Error() != rankingNotFoundError {
+				return model.Ranking{}, false, err
+			}
+			return model.Ranking{}, false, nil
+		}
+
+		return existing, true, nil
+	}
+
+	if ranking.Name != "" {
+		existing, err = GetRankingByMeetingAndEventAndName(ranking.Meeting, ranking.Event, ranking.Name)
+		if err != nil {
+			if err.Error() != rankingNotFoundError {
+				return model.Ranking{}, false, err
+			}
+			return model.Ranking{}, false, nil
+		}
+
+		return existing, true, nil
+	}
+
+	existing, err = GetRankingByMeetingAndEventAndAges(ranking.Meeting, ranking.Event, ranking.MinAge, ranking.MaxAge)
+	if err != nil {
+		if err.Error() != rankingNotFoundError {
+			return model.Ranking{}, false, err
+		}
+
+		return model.Ranking{}, false, nil
+	}
+
+	return existing, true, nil
 }
 
 func RemoveRankingById(id primitive.ObjectID) error {
@@ -107,33 +193,40 @@ func RemoveRankingById(id primitive.ObjectID) error {
 	return nil
 }
 
-func ImportRanking(group model.Ranking) (*model.Ranking, bool, error) {
-	existing, err := GetRankingByMeetingAndEventAndAges(group.Meeting, group.Event, group.MinAge, group.MaxAge)
-	if err != nil {
-		if err.Error() != rankingNotFoundError {
-			return nil, false, err
-		}
-
-		newGroup, err2 := AddRanking(group)
-		if err2 != nil {
-			return nil, false, err2
-		}
-		return &newGroup, true, nil
-	}
-
-	if group.Name != "" {
-		existing.Name = group.Name
-	}
-
-	if group.Gender != "UNSET" {
-		existing.Gender = group.Gender
-	}
-
-	newGroup, err := UpdateRanking(existing)
+func ImportRanking(ranking model.Ranking) (*model.Ranking, bool, error) {
+	existing, found, err := GetRankingByImport(ranking)
 	if err != nil {
 		return nil, false, err
 	}
-	return &newGroup, false, nil
+	if !found {
+		newRanking, err2 := AddRanking(ranking)
+		if err2 != nil {
+			return nil, false, err2
+		}
+		return &newRanking, true, nil
+	}
+
+	if ranking.Name != "" {
+		existing.Name = ranking.Name
+	}
+
+	if ranking.Gender != "UNSET" {
+		existing.Gender = ranking.Gender
+	}
+
+	if ranking.LenexId != "" {
+		existing.LenexId = ranking.LenexId
+	}
+
+	if ranking.DsvId != "" {
+		existing.DsvId = ranking.DsvId
+	}
+
+	newRanking, err := UpdateRanking(existing)
+	if err != nil {
+		return nil, false, err
+	}
+	return &newRanking, false, nil
 }
 
 func AddRanking(ranking model.Ranking) (model.Ranking, error) {

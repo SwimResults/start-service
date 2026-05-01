@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"os"
+	"time"
+
 	client2 "github.com/swimresults/athlete-service/client"
 	meetingClient "github.com/swimresults/meeting-service/client"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"os"
-	"time"
 )
 
 var client *mongo.Client
@@ -36,6 +37,7 @@ func Init(c *mongo.Client) {
 	heatService(database)
 	disqualificationService(database)
 	registrationService(database)
+	rankingService(database)
 
 	StartNotificationMainLoop()
 }

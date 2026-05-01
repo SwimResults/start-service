@@ -30,6 +30,7 @@ func Run() {
 	heatController()
 	disqualificationController()
 	resultController()
+	rankingController()
 	rankController()
 	registrationController()
 
