@@ -418,6 +418,10 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	var err error
 	existing, found, err := GetStartFromImport(start)
 
+	if err != nil {
+		return nil, false, err
+	}
+
 	if !found {
 		if start.AthleteTeamName == "" {
 			return nil, false, fmt.Errorf("missing argument"+
@@ -613,7 +617,16 @@ func ImportRank(start model.Start, rank model.Rank) (*model.Rank, bool, error) {
 		return nil, false, fmt.Errorf("start with given information not found")
 	}
 
-	existingRanking, found, err := GetRankingByMeetingAndEventAndAges()
+	existingRanking, found, err3 := GetRankingByImport(rank.Ranking)
+	if err3 != nil {
+		return nil, false, err3
+	}
+
+	if !found {
+		return nil, false, fmt.Errorf("ranking with given information not found")
+	}
+
+	rank.RankingId = existingRanking.Identifier
 
 	res, c, err2 := UpdateStartAddOrUpdateRank(existingStart.Identifier, rank)
 	if err2 != nil {
@@ -677,13 +690,14 @@ func UpdateStartAddOrUpdateResult(startId primitive.ObjectID, result model.Resul
 	return result, !found, nil
 }
 
-// UpdateStartAddOrUpdateRank bool is true if the rank was added, false if it was updated
+// UpdateStartAddOrUpdateRank bool is true if the rank was added, false if it was updated, rank must have correct rankingId set!!
 func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (model.Rank, bool, error) {
 	start, err := GetStartById(startId)
 	if err != nil {
 		return model.Rank{}, false, err
 	}
-	rank.AddedAt = time.Now()
+
+	rank.UpdatedAt = time.Now()
 	found := false
 	for i, r := range start.Ranks {
 		if r.RankingId == rank.RankingId {
@@ -693,6 +707,7 @@ func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (mo
 		}
 	}
 	if !found {
+		rank.AddedAt = time.Now()
 		start.Ranks = append(start.Ranks, rank)
 	}
 	_, err2 := UpdateStart(start)
