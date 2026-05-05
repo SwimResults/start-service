@@ -256,7 +256,9 @@ func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDt
 		return nil, err
 	}
 
-	allowedEvents := make(map[int]string)
+	allowedEventNumbers := make([]int, 0)
+	eventGenders := make(map[int]string)
+
 	for _, event := range *events {
 		if event.Final.IsFinal {
 			continue
@@ -271,39 +273,101 @@ func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDt
 			continue
 		}
 
-		allowedEvents[event.Number] = gender
+		allowedEventNumbers = append(allowedEventNumbers, event.Number)
+		eventGenders[event.Number] = gender
 	}
 
-	starts, err := GetStartsByMeeting(meeting)
+	if len(allowedEventNumbers) == 0 {
+		return []dto.StartsByYearAndGenderStatsDto{}, nil
+	}
+
+	// Use aggregation pipeline for database-level filtering and grouping (more efficient than fetching all records)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pipeline := []bson.M{
+		// Match meeting, valid athlete year, and allowed events
+		bson.M{
+			"$match": bson.M{
+				"meeting":      meeting,
+				"athlete_year": bson.M{"$gt": 0},
+				"event":        bson.M{"$in": allowedEventNumbers},
+			},
+		},
+		// Left join with disqualification collection to filter withdrawn starts
+		bson.M{
+			"$lookup": bson.M{
+				"from":         "disqualification",
+				"localField":   "disqualification_id",
+				"foreignField": "_id",
+				"as":           "disq",
+			},
+		},
+		// Filter out withdrawn starts (where disqualification type is "withdrawn")
+		bson.M{
+			"$match": bson.M{
+				"$or": []bson.M{
+					bson.M{"disq": bson.M{"$eq": []bson.M{}}},       // No disqualification
+					bson.M{"disq.type": bson.M{"$ne": "withdrawn"}}, // Disqualification but not withdrawn
+				},
+			},
+		},
+		// Group by year and event to count
+		bson.M{
+			"$group": bson.M{
+				"_id": bson.M{
+					"year":  "$athlete_year",
+					"event": "$event",
+				},
+				"count": bson.M{"$sum": 1},
+			},
+		},
+		// Sort by year
+		bson.M{
+			"$sort": bson.M{
+				"_id.year": 1,
+			},
+		},
+	}
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
-	stats := make(map[int]map[string]int)
-	for _, start := range starts {
-		gender, ok := allowedEvents[start.Event]
-		if !ok {
-			continue
+	// Process aggregation results
+	statsMap := make(map[int]map[string]int)
+
+	for cursor.Next(ctx) {
+		var result struct {
+			Id struct {
+				Year  int `bson:"year"`
+				Event int `bson:"event"`
+			} `bson:"_id"`
+			Count int `bson:"count"`
 		}
 
-		if start.AthleteYear <= 0 {
-			continue
+		if err := cursor.Decode(&result); err != nil {
+			return nil, err
 		}
 
-		// Skip withdrawn starts
-		if !start.DisqualificationId.IsZero() && start.Disqualification.Type == "withdrawn" {
-			continue
-		}
+		year := result.Id.Year
+		gender := eventGenders[result.Id.Event]
 
-		if _, ok = stats[start.AthleteYear]; !ok {
-			stats[start.AthleteYear] = map[string]int{}
+		if _, ok := statsMap[year]; !ok {
+			statsMap[year] = make(map[string]int)
 		}
-
-		stats[start.AthleteYear][gender]++
+		statsMap[year][gender] = result.Count
 	}
 
-	years := make([]int, 0, len(stats))
-	for year := range stats {
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	// Build response
+	years := make([]int, 0, len(statsMap))
+	for year := range statsMap {
 		years = append(years, year)
 	}
 	sort.Ints(years)
@@ -313,8 +377,8 @@ func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDt
 		response = append(response, dto.StartsByYearAndGenderStatsDto{
 			Year: year,
 			Genders: []dto.StartsByGenderStatsDto{
-				{Gender: "FEMALE", Amount: stats[year]["FEMALE"]},
-				{Gender: "MALE", Amount: stats[year]["MALE"]},
+				{Gender: "FEMALE", Amount: statsMap[year]["FEMALE"]},
+				{Gender: "MALE", Amount: statsMap[year]["MALE"]},
 			},
 		})
 	}
