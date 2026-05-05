@@ -300,15 +300,22 @@ func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDt
 				"from":         "disqualification",
 				"localField":   "disqualification_id",
 				"foreignField": "_id",
-				"as":           "disq",
+				"as":           "disq_docs",
 			},
 		},
-		// Filter out withdrawn starts (where disqualification type is "withdrawn")
+		// Unwind disqualification (handles cases where there's no match)
+		bson.M{
+			"$unwind": bson.M{
+				"path":                       "$disq_docs",
+				"preserveNullAndEmptyArrays": true,
+			},
+		},
+		// Filter out withdrawn starts
 		bson.M{
 			"$match": bson.M{
 				"$or": []bson.M{
-					bson.M{"disq": bson.M{"$eq": []bson.M{}}},       // No disqualification
-					bson.M{"disq.type": bson.M{"$ne": "withdrawn"}}, // Disqualification but not withdrawn
+					bson.M{"disq_docs": bson.M{"$eq": nil}},              // No disqualification
+					bson.M{"disq_docs.type": bson.M{"$ne": "withdrawn"}}, // Has disqualification but not withdrawn
 				},
 			},
 		},
