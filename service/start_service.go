@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/swimresults/service-core/misc"
@@ -243,6 +244,77 @@ func GetCurrentStarts(meeting string) ([]model.Start, error) {
 	}
 
 	return GetStartsByMeetingAndEventAndHeat(meeting, heat.Event, heat.Number)
+}
+
+func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDto, error) {
+	if eventClient == nil {
+		return nil, errors.New("event client not configured")
+	}
+
+	events, err := eventClient.GetEventsByMeetId(meeting)
+	if err != nil {
+		return nil, err
+	}
+
+	allowedEvents := make(map[int]string)
+	for _, event := range *events {
+		if event.Final.IsFinal {
+			continue
+		}
+
+		if strings.TrimSpace(event.RelayDistance) != "" {
+			continue
+		}
+
+		gender := strings.ToUpper(strings.TrimSpace(event.Gender))
+		if gender != "MALE" && gender != "FEMALE" {
+			continue
+		}
+
+		allowedEvents[event.Number] = gender
+	}
+
+	starts, err := GetStartsByMeeting(meeting)
+	if err != nil {
+		return nil, err
+	}
+
+	stats := make(map[int]map[string]int)
+	for _, start := range starts {
+		gender, ok := allowedEvents[start.Event]
+		if !ok {
+			continue
+		}
+
+		if start.AthleteYear <= 0 {
+			continue
+		}
+
+		if _, ok = stats[start.AthleteYear]; !ok {
+			stats[start.AthleteYear] = map[string]int{}
+		}
+
+		stats[start.AthleteYear][gender]++
+	}
+
+	years := make([]int, 0, len(stats))
+	for year := range stats {
+		years = append(years, year)
+	}
+	sort.Ints(years)
+
+	response := make([]dto.StartsByYearAndGenderStatsDto, 0, len(years))
+	for _, year := range years {
+		response = append(response, dto.StartsByYearAndGenderStatsDto{
+			Year: year,
+			Genders: []dto.StartsByGenderStatsDto{
+				{Gender: "FEMALE", Amount: stats[year]["FEMALE"]},
+				{Gender: "MALE", Amount: stats[year]["MALE"]},
+			},
+		})
+	}
+
+	return response, nil
 }
 
 func RemoveStartById(id primitive.ObjectID) error {

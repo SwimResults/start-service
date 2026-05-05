@@ -93,6 +93,8 @@ github.com/swimresults/athlete-service v0.3.0 h1:j0JT29Xe1kFZVMUnNRVIxAuZzYKcuMz
 github.com/swimresults/athlete-service v0.3.0/go.mod h1:Qle3iMWqW9uFWSCkjy7oFVMZ2uFry5tC2JX9BzKkpNg=
 github.com/swimresults/meeting-service v0.8.0 h1:1JH7dx60Fz5fkynGAfzlqn4Q/CsQIz7yeIGJ8SHmouk=
 github.com/swimresults/meeting-service v0.8.0/go.mod h1:CMlCDEdbyLxA3MblOIvfxzD64hUKkYdSwfsupc+GLW4=
+github.com/swimresults/meeting-service v0.9.1 h1:rylSE3abo9W0ZX88gvoaJrlZRP+z9o6u9Sp8cdenrEs=
+github.com/swimresults/meeting-service v0.9.1/go.mod h1:AJ0dGVfe7JYAdsbNonSinpAF3sRVbTylbZY9G7bSctA=
 github.com/swimresults/service-core v0.7.0 h1:s4ULap/XH+/Ztp3rsCyk7xGQy7+pLPkBl6dODmRqano=
 github.com/swimresults/service-core v0.7.0/go.mod h1:PDH00AdKjzQ8nPSPtPIblDBENxm1Q7885duzEEW1aC8=
 github.com/swimresults/user-service v0.1.5 h1:kc+q8ej5dOAnA4ZfvZ2RmszWu22V7R46Q7Jf3D3K0pE=

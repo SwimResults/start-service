@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swimresults/athlete-service v0.3.0
-	github.com/swimresults/meeting-service v0.8.0
+	github.com/swimresults/meeting-service v0.9.1
 	github.com/swimresults/service-core v0.7.0
 	github.com/swimresults/user-service v0.1.5
 	github.com/zsais/go-gin-prometheus v1.0.0
