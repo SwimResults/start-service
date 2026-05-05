@@ -290,6 +290,11 @@ func GetStartsByMeetingStats(meeting string) ([]dto.StartsByYearAndGenderStatsDt
 			continue
 		}
 
+		// Skip withdrawn starts
+		if !start.DisqualificationId.IsZero() && start.Disqualification.Type == "withdrawn" {
+			continue
+		}
+
 		if _, ok = stats[start.AthleteYear]; !ok {
 			stats[start.AthleteYear] = map[string]int{}
 		}
