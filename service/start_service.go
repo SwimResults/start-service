@@ -49,7 +49,7 @@ func getStartsByBsonDocumentWithOptions(d interface{}, queryOptions *options.Fin
 		if !start.DisqualificationId.IsZero() {
 			start.Disqualification, _ = GetDisqualificationById(start.DisqualificationId)
 		}
-		start.Heat, _ = GetHeatByNumber(start.Meeting, start.Event, start.HeatNumber)
+		start.Heat, _ = GetHeatByNumberWithoutDelay(start.Meeting, start.Event, start.HeatNumber)
 		starts = append(starts, start)
 	}
 
