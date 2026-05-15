@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/service"
 )
 
 func resultController() {
-	router.POST("/result/import", importResult)
+	security.Route(router, "POST", "/result/import", security.PermissionMeeting, importResult)
 }
 
 func importResult(c *gin.Context) {

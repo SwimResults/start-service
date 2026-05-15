@@ -3,13 +3,14 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/service"
 	"net/http"
 )
 
 func disqualificationController() {
-	router.POST("/disqualification/import", importDisqualification)
+	security.Route(router, "POST", "/disqualification/import", security.PermissionMeeting, importDisqualification)
 }
 
 func importDisqualification(c *gin.Context) {

@@ -29,6 +29,8 @@ github.com/go-playground/validator/v10 v10.26.0 h1:SP05Nqhjcvz81uJaRfEV0YBSSSGMc
 github.com/go-playground/validator/v10 v10.26.0/go.mod h1:I5QpIEbmr8On7W0TktmJAumgzX4CA1XNl4ZmDuVHKKo=
 github.com/goccy/go-json v0.10.5 h1:Fq85nIqj+gXn/S5ahsiTlK3TmC85qgirsdTP/+DeaC4=
 github.com/goccy/go-json v0.10.5/go.mod h1:oq7eo15ShAhp70Anwd5lgX2pLfOS3QCiwU/PULtXL6M=
+github.com/golang-jwt/jwt/v5 v5.2.2 h1:Rl4B7itRWVtYIHFrSNd7vhTiz9UpLdi6gZhZ3wEeDy8=
+github.com/golang-jwt/jwt/v5 v5.2.2/go.mod h1:pqrtFR0X4osieyHYxtmOUWsAWrfe1Q5UVIyoH402zdk=
 github.com/golang/snappy v1.0.0 h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=
 github.com/golang/snappy v1.0.0/go.mod h1:/XxbfmMg8lxefKM7IXC3fBNl/7bRcc72aCRzEWrmP2Q=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
@@ -93,8 +95,8 @@ github.com/swimresults/athlete-service v0.3.0 h1:j0JT29Xe1kFZVMUnNRVIxAuZzYKcuMz
 github.com/swimresults/athlete-service v0.3.0/go.mod h1:Qle3iMWqW9uFWSCkjy7oFVMZ2uFry5tC2JX9BzKkpNg=
 github.com/swimresults/meeting-service v0.8.0 h1:1JH7dx60Fz5fkynGAfzlqn4Q/CsQIz7yeIGJ8SHmouk=
 github.com/swimresults/meeting-service v0.8.0/go.mod h1:CMlCDEdbyLxA3MblOIvfxzD64hUKkYdSwfsupc+GLW4=
-github.com/swimresults/service-core v0.7.0 h1:s4ULap/XH+/Ztp3rsCyk7xGQy7+pLPkBl6dODmRqano=
-github.com/swimresults/service-core v0.7.0/go.mod h1:PDH00AdKjzQ8nPSPtPIblDBENxm1Q7885duzEEW1aC8=
+github.com/swimresults/service-core v0.8.3 h1:7lLj0RXakxUCmeAzVbmdkE2Sc4uQhkAsT+v8frXB/YI=
+github.com/swimresults/service-core v0.8.3/go.mod h1:z8ywRluddSZBynCS2mW9Sgp3XCk84UDF9uziGRxmkTs=
 github.com/swimresults/user-service v0.1.5 h1:kc+q8ej5dOAnA4ZfvZ2RmszWu22V7R46Q7Jf3D3K0pE=
 github.com/swimresults/user-service v0.1.5/go.mod h1:liyNW+g2Y1mTIA9VfBSnzgsZo5z0y6GeVqztC7Ey3CY=
 github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS4MhqMhdFk5YI=

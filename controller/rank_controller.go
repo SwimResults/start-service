@@ -5,12 +5,13 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/service"
 )
 
 func rankController() {
-	router.POST("/rank/import", importRank)
+	security.Route(router, http.MethodPost, "/rank/import", security.PermissionMeeting, importRank)
 }
 
 func importRank(c *gin.Context) {

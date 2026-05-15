@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,10 +15,10 @@ func registrationController() {
 	router.GET("/registration/meet/:meet_id", getRegistrationsByMeeting)
 	router.GET("/registration/meet/:meet_id/me", getRegistrationsByMeetingForMe)
 
-	router.POST("/registration", addRegistration)
+	security.Route(router, http.MethodPost, "/registration", security.PermissionMeeting, addRegistration)
 
-	router.PUT("/registration", updateRegistration)
-	router.DELETE("/registration/:id", removeRegistration)
+	security.Route(router, http.MethodPut, "/registration", security.PermissionMeeting, updateRegistration)
+	security.Route(router, http.MethodDelete, "/registration/:id", security.PermissionMeeting, removeRegistration)
 }
 
 func getRegistration(c *gin.Context) {

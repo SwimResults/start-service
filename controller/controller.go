@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/service"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
@@ -13,7 +14,6 @@ import (
 var router = gin.Default()
 
 func Run() {
-
 	port := os.Getenv("SR_START_PORT")
 
 	if port == "" {
@@ -21,10 +21,17 @@ func Run() {
 		return
 	}
 
+	security.InitAuthMiddleware(&security.AuthMiddlewareConfig{
+		ServiceKey:    os.Getenv("SR_SERVICE_KEY"),
+		ExcludedPaths: []string{"/actuator"},
+	})
+
 	p := ginprometheus.NewWithConfig(ginprometheus.Config{
 		Subsystem: "gin",
 	})
 	p.Use(router)
+
+	router.Use(security.AuthMiddleware())
 
 	startController()
 	heatController()

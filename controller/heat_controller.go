@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
@@ -26,16 +27,16 @@ func heatController() {
 	router.GET("/heat/meet/:meet_id/current", getCurrentHeat)
 	router.GET("/heat/meet/:meet_id/current_next", getCurrentNextHeat)
 
-	router.POST("/heat", addHeat)
-	router.POST("/heat/import", importHeat)
-	router.POST("/heat/meet/:meet_id/events/start_estimation_date", updateHeatsStartEstimationDate)
-	router.POST("/heat/meet/:meet_id/event/:event_id/heat/:heat/start", triggerHeatStart)
-	router.POST("/heat/:id/time", updateHeatTime)
+	security.Route(router, http.MethodPost, "/heat", security.PermissionMeeting, addHeat)
+	security.Route(router, http.MethodPost, "/heat/import", security.PermissionMeeting, importHeat)
+	security.Route(router, http.MethodPost, "/heat/meet/:meet_id/events/start_estimation_date", security.PermissionMeeting, updateHeatsStartEstimationDate)
+	security.Route(router, http.MethodPost, "/heat/meet/:meet_id/event/:event_id/heat/:heat/start", security.PermissionMeeting, triggerHeatStart)
+	security.Route(router, http.MethodPost, "/heat/:id/time", security.PermissionMeeting, updateHeatTime)
 
-	router.PUT("/heat", updateHeat)
+	security.Route(router, http.MethodPut, "/heat", security.PermissionMeeting, updateHeat)
 
-	router.DELETE("/heat/:id", removeHeat)
-	router.DELETE("/heat/meet/:meet_id/event/:event_id", deleteHeatsByMeetingAndEvent)
+	security.Route(router, http.MethodDelete, "/heat/:id", security.PermissionMeeting, removeHeat)
+	security.Route(router, http.MethodDelete, "/heat/meet/:meet_id/event/:event_id", security.PermissionMeeting, deleteHeatsByMeetingAndEvent)
 }
 
 func getHeats(c *gin.Context) {

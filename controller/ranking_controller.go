@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
@@ -18,12 +19,12 @@ func rankingController() {
 	router.GET("/ranking/meet/:meet_id", getRankingsByMeeting)
 	router.GET("/ranking/meet/:meet_id/event/:event_id", getRankingByMeetingAndEvent)
 
-	router.POST("/ranking", addRanking)
-	router.POST("/ranking/import", importRanking)
+	security.Route(router, http.MethodPost, "/ranking", security.PermissionMeeting, addRanking)
+	security.Route(router, http.MethodPost, "/ranking/import", security.PermissionMeeting, importRanking)
 
-	router.DELETE("/ranking/:id", removeRanking)
+	security.Route(router, http.MethodDelete, "/ranking/:id", security.PermissionMeeting, removeRanking)
 
-	router.PUT("/ranking", updateRanking)
+	security.Route(router, http.MethodPut, "/ranking", security.PermissionMeeting, updateRanking)
 }
 
 func getRankings(c *gin.Context) {
