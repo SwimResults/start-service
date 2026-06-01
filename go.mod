@@ -9,7 +9,7 @@ require (
 	github.com/go-playground/assert/v2 v2.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/swimresults/athlete-service v0.3.0
-	github.com/swimresults/meeting-service v0.8.0
+	github.com/swimresults/meeting-service v0.9.1
 	github.com/swimresults/service-core v0.9.3
 	github.com/swimresults/user-service v0.2.0
 	github.com/zsais/go-gin-prometheus v1.0.0
@@ -28,7 +28,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.26.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -45,7 +44,6 @@ require (
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
 	github.com/prometheus/procfs v0.16.1 // indirect
-	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/swimresults/service-core/misc"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
@@ -12,7 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 var heatCollection *mongo.Collection
@@ -452,15 +453,15 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 	}
 
 	changed := false
-	if !heat.StartEstimation.IsZero() {
+	if !heat.StartEstimation.IsZero() && !(heat.StartEstimation.Hour() == 0 && heat.StartEstimation.Minute() == 0) {
 		existing.StartEstimation = heat.StartEstimation
 		changed = true
 	}
-	if !heat.StartAt.IsZero() {
+	if !heat.StartAt.IsZero() && !(heat.StartEstimation.Hour() == 0 && heat.StartEstimation.Minute() == 0) {
 		existing.StartAt = heat.StartAt
 		changed = true
 	}
-	if !heat.FinishedAt.IsZero() {
+	if !heat.FinishedAt.IsZero() && !(heat.StartEstimation.Hour() == 0 && heat.StartEstimation.Minute() == 0) {
 		existing.FinishedAt = heat.FinishedAt
 		changed = true
 	}
@@ -487,6 +488,11 @@ func UpdateHeat(heat model.Heat) (model.Heat, error) {
 }
 
 func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (model.Heat, error) {
+
+	if time.IsZero() && !(time.Hour() == 0 && time.Minute() == 0) {
+		return model.Heat{}, errors.New("invalid time provided")
+	}
+
 	heat, err := GetHeatByIdWithoutDelay(id)
 	if err != nil {
 		return model.Heat{}, err
