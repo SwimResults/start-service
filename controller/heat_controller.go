@@ -2,14 +2,15 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"strconv"
 )
 
 func heatController() {
@@ -27,16 +28,16 @@ func heatController() {
 	router.GET("/heat/meet/:meet_id/current", getCurrentHeat)
 	router.GET("/heat/meet/:meet_id/current_next", getCurrentNextHeat)
 
-	security.Route(router, http.MethodPost, "/heat", security.PermissionMeeting, addHeat)
-	security.Route(router, http.MethodPost, "/heat/import", security.PermissionMeeting, importHeat)
+	security.Route(router, http.MethodPost, "/heat", security.PermissionAdmin, addHeat)
+	security.Route(router, http.MethodPost, "/heat/import", security.PermissionAdmin, importHeat)
 	security.Route(router, http.MethodPost, "/heat/meet/:meet_id/events/start_estimation_date", security.PermissionMeeting, updateHeatsStartEstimationDate)
 	security.Route(router, http.MethodPost, "/heat/meet/:meet_id/event/:event_id/heat/:heat/start", security.PermissionMeeting, triggerHeatStart)
 	security.Route(router, http.MethodPost, "/heat/:id/time", security.PermissionMeeting, updateHeatTime)
 
-	security.Route(router, http.MethodPut, "/heat", security.PermissionMeeting, updateHeat)
+	security.Route(router, http.MethodPut, "/heat", security.PermissionAdmin, updateHeat)
 
-	security.Route(router, http.MethodDelete, "/heat/:id", security.PermissionMeeting, removeHeat)
-	security.Route(router, http.MethodDelete, "/heat/meet/:meet_id/event/:event_id", security.PermissionMeeting, deleteHeatsByMeetingAndEvent)
+	security.Route(router, http.MethodDelete, "/heat/:id", security.PermissionAdmin, removeHeat)
+	security.Route(router, http.MethodDelete, "/heat/meet/:meet_id/event/:event_id", security.PermissionAdmin, deleteHeatsByMeetingAndEvent)
 }
 
 func getHeats(c *gin.Context) {

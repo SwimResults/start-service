@@ -2,14 +2,15 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"strconv"
 )
 
 func startController() {
@@ -30,13 +31,13 @@ func startController() {
 	router.GET("/start/meet/:meet_id/livestream/state", getLivestreamHeatState)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
 
-	security.Route(router, http.MethodPost, "/start", security.PermissionMeeting, addStart)
-	security.Route(router, http.MethodPost, "/start/import", security.PermissionMeeting, importStart)
+	security.Route(router, http.MethodPost, "/start", security.PermissionAdmin, addStart)
+	security.Route(router, http.MethodPost, "/start/import", security.PermissionAdmin, importStart)
 
-	security.Route(router, http.MethodDelete, "/start/:id", security.PermissionMeeting, removeStart)
-	security.Route(router, http.MethodDelete, "/start/meet/:meet_id/event/:event_id", security.PermissionMeeting, deleteStartsByMeetingAndEvent)
+	security.Route(router, http.MethodDelete, "/start/:id", security.PermissionAdmin, removeStart)
+	security.Route(router, http.MethodDelete, "/start/meet/:meet_id/event/:event_id", security.PermissionAdmin, deleteStartsByMeetingAndEvent)
 
-	security.Route(router, http.MethodPut, "/start", security.PermissionMeeting, updateStart)
+	security.Route(router, http.MethodPut, "/start", security.PermissionAdmin, updateStart)
 }
 
 func getStarts(c *gin.Context) {

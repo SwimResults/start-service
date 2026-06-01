@@ -11,7 +11,7 @@ import (
 )
 
 func resultController() {
-	security.Route(router, "POST", "/result/import", security.PermissionMeeting, importResult)
+	security.Route(router, "POST", "/result/import", security.PermissionAdmin, importResult)
 }
 
 func importResult(c *gin.Context) {

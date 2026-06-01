@@ -11,7 +11,7 @@ import (
 )
 
 func rankController() {
-	security.Route(router, http.MethodPost, "/rank/import", security.PermissionMeeting, importRank)
+	security.Route(router, http.MethodPost, "/rank/import", security.PermissionAdmin, importRank)
 }
 
 func importRank(c *gin.Context) {

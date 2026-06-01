@@ -19,12 +19,12 @@ func rankingController() {
 	router.GET("/ranking/meet/:meet_id", getRankingsByMeeting)
 	router.GET("/ranking/meet/:meet_id/event/:event_id", getRankingByMeetingAndEvent)
 
-	security.Route(router, http.MethodPost, "/ranking", security.PermissionMeeting, addRanking)
-	security.Route(router, http.MethodPost, "/ranking/import", security.PermissionMeeting, importRanking)
+	security.Route(router, http.MethodPost, "/ranking", security.PermissionAdmin, addRanking)
+	security.Route(router, http.MethodPost, "/ranking/import", security.PermissionAdmin, importRanking)
 
-	security.Route(router, http.MethodDelete, "/ranking/:id", security.PermissionMeeting, removeRanking)
+	security.Route(router, http.MethodDelete, "/ranking/:id", security.PermissionAdmin, removeRanking)
 
-	security.Route(router, http.MethodPut, "/ranking", security.PermissionMeeting, updateRanking)
+	security.Route(router, http.MethodPut, "/ranking", security.PermissionAdmin, updateRanking)
 }
 
 func getRankings(c *gin.Context) {

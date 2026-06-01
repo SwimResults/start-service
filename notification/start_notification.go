@@ -2,8 +2,9 @@ package notification
 
 import (
 	"fmt"
-	"github.com/swimresults/start-service/model"
 	"time"
+
+	"github.com/swimresults/start-service/model"
 )
 
 func SendStartNotificationForAthlete(start model.Start) {
@@ -11,7 +12,6 @@ func SendStartNotificationForAthlete(start model.Start) {
 	fmt.Printf("notifying athlete for event: %d, heat: %d, lane: %d, athlete: %s in %.f minutes\n", start.Event, start.HeatNumber, start.Lane, start.AthleteName, minutes)
 	go func() {
 		_, err := notificationClient.SendNotificationForMeetingAndAthlete(
-			serviceKey,
 			start.Meeting,
 			start.Athlete,
 			fmt.Sprintf("Wettkampf %d", start.Event),
@@ -32,7 +32,6 @@ func SendStartNotificationForFavourite(start model.Start) {
 	fmt.Printf("notifying favourite for event: %d, heat: %d, lane: %d, athlete: %s in %.f minutes\n", start.Event, start.HeatNumber, start.Lane, start.AthleteName, minutes)
 	go func() {
 		_, err := notificationClient.SendNotificationForMeetingAndAthlete(
-			serviceKey,
 			start.Meeting,
 			start.Athlete,
 			fmt.Sprintf("Wettkampf %d", start.Event),
