@@ -420,7 +420,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
 		if err != nil {
-			if err.Error() != rankingNotFoundError {
+			if err.Error() != "no entry found" {
 				debugImportStartFailure("lookup by heat and lane", start, err)
 				return model.Start{}, false, err
 			}
