@@ -23,6 +23,8 @@ func startService(database *mongo.Database) {
 	collection = database.Collection("start")
 }
 
+var startNotFoundError = "no start found"
+
 func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
 
 	queryOptions := options.FindOptions{}
@@ -79,7 +81,7 @@ func getStartByBsonDocumentWithOptions(d interface{}, queryOptions *options.Find
 		return starts[0], nil
 	}
 
-	return model.Start{}, errors.New("no entry found")
+	return model.Start{}, errors.New(startNotFoundError)
 }
 
 func GetStartById(id primitive.ObjectID) (model.Start, error) {
@@ -420,7 +422,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
 				debugImportStartFailure("lookup by heat and lane", start, err)
 				return model.Start{}, false, err
 			}
@@ -441,7 +443,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.AthleteMeetingId != 0 {
 		existing, err = GetStartByMeetingAndEventAndAthleteMeetingId(start.Meeting, start.Event, start.AthleteMeetingId)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
 				debugImportStartFailure("lookup by athlete meeting id", start, err)
 				return model.Start{}, false, err
 			}
@@ -453,7 +455,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.AthleteName != "" && start.AthleteYear != 0 {
 		existing, err = GetStartByMeetingAndEventAndAthleteNameAndYear(start.Meeting, start.Event, start.AthleteName, start.AthleteYear)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
 				debugImportStartFailure("lookup by athlete name and year", start, err)
 				return model.Start{}, false, err
 			}
@@ -471,7 +473,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 		if found2 {
 			existing, err = GetStartByMeetingAndEventAndAthleteId(start.Meeting, start.Event, athlete.Identifier)
 			if err != nil {
-				if err.Error() != "no entry found" {
+				if err.Error() != startNotFoundError {
 					debugImportStartFailure("lookup by athlete id", start, err)
 					return model.Start{}, false, err
 				}
