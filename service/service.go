@@ -14,7 +14,6 @@ import (
 var client *mongo.Client
 var athleteClient *client2.AthleteClient
 var teamClient *client2.TeamClient
-var ageGroupClient *meetingClient.AgeGroupClient
 var eventClient *meetingClient.EventClient
 
 func Init(c *mongo.Client) {
@@ -29,7 +28,6 @@ func Init(c *mongo.Client) {
 
 	meetingServiceUrl := os.Getenv("SR_START_MEETING_URL")
 	if meetingServiceUrl != "" {
-		ageGroupClient = meetingClient.NewAgeGroupClient(meetingServiceUrl)
 		eventClient = meetingClient.NewEventClient(meetingServiceUrl)
 	}
 

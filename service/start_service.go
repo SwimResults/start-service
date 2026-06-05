@@ -200,7 +200,7 @@ func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 }
 
 func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.EventStartResultRequestDto, error) {
-	ageGroups, err := ageGroupClient.GetAgeGroupsForMeetingAndEvent(meeting, event)
+	ageGroups, err := GetRankingsByMeetingAndEvent(meeting, event)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +210,7 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 	queryOptions := options.FindOptions{}
 	queryOptions.SetSort(bson.D{{"disqualification_id", 1}, {"rank", 1}})
 
-	for _, group := range *ageGroups {
+	for _, group := range ageGroups {
 		if group.IsYear != true {
 			continue
 		}
@@ -229,8 +229,8 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 		}
 
 		result := dto.EventStartResultRequestDto{
-			AgeGroup: group,
-			Starts:   starts,
+			Ranking: group,
+			Starts:  starts,
 		}
 
 		results = append(results, result)
