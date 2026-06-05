@@ -74,7 +74,7 @@ func (c *StartClient) ImportResult(start model.Start, result model.Result) (*mod
 		return nil, false, err
 	}
 
-	if res.StatusCode != http.StatusCreated {
+	if res.StatusCode != http.StatusCreated && res.StatusCode != http.StatusOK {
 		return nil, false, fmt.Errorf("import result request returned: %d", res.StatusCode)
 	}
 	return newResult, res.StatusCode == http.StatusCreated, nil
