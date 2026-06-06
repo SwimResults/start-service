@@ -9,7 +9,6 @@ import (
 type Rank struct {
 	Identifier primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`               // automatically
 	Rank       int                `json:"rank,omitempty" bson:"rank,omitempty"`             // PDF + DSV
-	Points     int                `json:"points,omitempty" bson:"points,omitempty"`         // LENEX
 	Ranking    Ranking            `json:"ranking,omitempty" bson:"-"`                       // LENEX + DSV
 	RankingId  primitive.ObjectID `json:"-" bson:"ranking_id,omitempty"`                    // automatically
 	AddedAt    time.Time          `json:"added_at,omitempty" bson:"added_at,omitempty"`     // automatically
