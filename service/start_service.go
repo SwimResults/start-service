@@ -849,9 +849,12 @@ func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (mo
 // addOrUpdateRanksInStart replaces ranks in a start but does not save the start
 func addOrUpdateRanksInStart(start *model.Start, ranks []model.Rank) error {
 	for _, rank := range ranks {
-		if rank.RankingId.IsZero() {
+		if rank.Ranking.Identifier.IsZero() {
 			return fmt.Errorf("cannot add rank to start without ranking id set, use rank import to add new ranks  without knowing the ranking id beforehand")
 		}
+
+		rank.RankingId = rank.Ranking.Identifier
+
 		rank.UpdatedAt = time.Now()
 		found := false
 		for i, r := range start.Ranks {
