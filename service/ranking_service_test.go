@@ -42,7 +42,7 @@ func TestSetAgesForRankingOlder(t *testing.T) {
 	}
 
 	var list []int
-	for i := 1900; i <= 2002; i++ {
+	for i := 2002; i <= 2100; i++ {
 		list = append(list, i)
 	}
 
