@@ -10,23 +10,27 @@ import (
 	"github.com/swimresults/start-service/service"
 )
 
-func disqualificationController() {
-	security.Route(router, "POST", "/disqualification/import", security.PermissionAdmin, importDisqualification)
+func rankController() {
+	security.Route(router, http.MethodPost, "/rank/import", security.PermissionAdmin, importRank)
 }
 
-func importDisqualification(c *gin.Context) {
-	var request dto.ImportDisqualificationRequestDto
+func importRank(c *gin.Context) {
+	var request dto.ImportRankRequestDto
 	if err := c.BindJSON(&request); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	disqualification, _, err := service.ImportDisqualification(request.Start, request.Disqualification)
+	rank, r, err := service.ImportRank(request.Start, request.Rank)
 	if err != nil {
 		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, disqualification)
 
+	if r {
+		c.IndentedJSON(http.StatusCreated, rank)
+	} else {
+		c.IndentedJSON(http.StatusOK, rank)
+	}
 }

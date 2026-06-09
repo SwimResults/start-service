@@ -23,6 +23,8 @@ func startService(database *mongo.Database) {
 	collection = database.Collection("start")
 }
 
+var startNotFoundError = "no start found"
+
 func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
 
 	queryOptions := options.FindOptions{}
@@ -79,7 +81,7 @@ func getStartByBsonDocumentWithOptions(d interface{}, queryOptions *options.Find
 		return starts[0], nil
 	}
 
-	return model.Start{}, errors.New("no entry found")
+	return model.Start{}, errors.New(startNotFoundError)
 }
 
 func GetStartById(id primitive.ObjectID) (model.Start, error) {
@@ -198,7 +200,7 @@ func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
 }
 
 func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.EventStartResultRequestDto, error) {
-	ageGroups, err := ageGroupClient.GetAgeGroupsForMeetingAndEvent(meeting, event)
+	ageGroups, err := GetRankingsByMeetingAndEvent(meeting, event)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +210,7 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 	queryOptions := options.FindOptions{}
 	queryOptions.SetSort(bson.D{{"disqualification_id", 1}, {"rank", 1}})
 
-	for _, group := range *ageGroups {
+	for _, group := range ageGroups {
 		if group.IsYear != true {
 			continue
 		}
@@ -227,8 +229,8 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 		}
 
 		result := dto.EventStartResultRequestDto{
-			AgeGroup: group,
-			Starts:   starts,
+			Ranking: group,
+			Starts:  starts,
 		}
 
 		results = append(results, result)
@@ -401,6 +403,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if !start.Identifier.IsZero() {
 		existing, err = GetStartById(start.Identifier)
 		if err != nil {
+			debugImportStartFailure("lookup by identifier", start, err)
 			return model.Start{}, false, errors.New("could not find start by identifier '" + start.Identifier.String() + "', even though it was given")
 		}
 		return existing, true, nil
@@ -408,6 +411,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 
 	if start.Meeting == "" ||
 		start.Event == 0 {
+		debugImportStartFailure("validation missing meeting or event", start, fmt.Errorf("missing arguments"))
 		return model.Start{}, false, fmt.Errorf("missing arguments"+
 			"(expected: meeting; event; ..."+
 			"got: '%s', '%d')",
@@ -418,7 +422,8 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.HeatNumber != 0 && start.Lane >= 0 {
 		existing, err = GetStartByMeetingAndEventAndHeatAndLane(start.Meeting, start.Event, start.HeatNumber, start.Lane)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
+				debugImportStartFailure("lookup by heat and lane", start, err)
 				return model.Start{}, false, err
 			}
 		} else {
@@ -427,6 +432,7 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	}
 
 	if start.AthleteName == "" || start.AthleteYear == 0 {
+		debugImportStartFailure("validation missing athlete name or year", start, fmt.Errorf("missing arguments"))
 		return model.Start{}, false, fmt.Errorf("missing arguments"+
 			"(expected: athlete_name; athlete_year; ..."+
 			"got: '%s', '%d')",
@@ -437,7 +443,8 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.AthleteMeetingId != 0 {
 		existing, err = GetStartByMeetingAndEventAndAthleteMeetingId(start.Meeting, start.Event, start.AthleteMeetingId)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
+				debugImportStartFailure("lookup by athlete meeting id", start, err)
 				return model.Start{}, false, err
 			}
 		} else {
@@ -448,7 +455,8 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.AthleteName != "" && start.AthleteYear != 0 {
 		existing, err = GetStartByMeetingAndEventAndAthleteNameAndYear(start.Meeting, start.Event, start.AthleteName, start.AthleteYear)
 		if err != nil {
-			if err.Error() != "no entry found" {
+			if err.Error() != startNotFoundError {
+				debugImportStartFailure("lookup by athlete name and year", start, err)
 				return model.Start{}, false, err
 			}
 		} else {
@@ -459,12 +467,14 @@ func GetStartFromImport(start model.Start) (model.Start, bool, error) {
 	if start.AthleteName != "" && start.AthleteYear != 0 && athleteClient != nil {
 		athlete, found2, err2 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
 		if err2 != nil {
+			debugImportStartFailure("athlete client lookup by name and year", start, err2)
 			return model.Start{}, false, err2
 		}
 		if found2 {
 			existing, err = GetStartByMeetingAndEventAndAthleteId(start.Meeting, start.Event, athlete.Identifier)
 			if err != nil {
-				if err.Error() != "no entry found" {
+				if err.Error() != startNotFoundError {
+					debugImportStartFailure("lookup by athlete id", start, err)
 					return model.Start{}, false, err
 				}
 			} else {
@@ -495,8 +505,14 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 	var err error
 	existing, found, err := GetStartFromImport(start)
 
+	if err != nil {
+		debugImportStartFailure("resolve existing start", start, err)
+		return nil, false, err
+	}
+
 	if !found {
 		if start.AthleteTeamName == "" {
+			debugImportStartFailure("missing athlete team name", start, fmt.Errorf("missing athlete_team_name"))
 			return nil, false, fmt.Errorf("missing argument"+
 				"(expected: athlete_team_name; since start isn't existing ..."+
 				"got: '%s')",
@@ -509,9 +525,11 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 			if start.Athlete.IsZero() {
 				athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
 				if err3 != nil {
+					debugImportStartFailure("athlete lookup while creating start", start, err3)
 					return nil, false, err3
 				}
 				if !f {
+					debugImportStartFailure("athlete not found while creating start", start, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName))
 					return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
 				}
 				start.Athlete = athlete.Identifier
@@ -531,9 +549,11 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 			// get teamID
 			team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
 			if err4 != nil {
+				debugImportStartFailure("team lookup while creating start", start, err4)
 				return nil, false, err4
 			}
 			if !f2 {
+				debugImportStartFailure("team not found while creating start", start, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName))
 				return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
 			}
 
@@ -543,6 +563,7 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		// save new start
 		newStart, err2 := AddStart(start)
 		if err2 != nil {
+			debugImportStartFailure("persist new start", start, err2)
 			return nil, false, err2
 		}
 		fmt.Printf("import of start '%s/%d/%d/%d', was created\n", start.Meeting, start.Event, start.HeatNumber, start.Lane)
@@ -570,13 +591,16 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 
 		if needsAthleteLookup {
 			if athleteClient == nil {
+				debugImportStartFailure("athlete client missing during update import", start, fmt.Errorf("athlete client is not configured"))
 				return nil, false, fmt.Errorf("athlete client is not configured")
 			}
 			athlete, f, err3 := athleteClient.GetAthleteByNameAndYear(start.AthleteName, start.AthleteYear)
 			if err3 != nil {
+				debugImportStartFailure("athlete lookup during update import", start, err3)
 				return nil, false, err3
 			}
 			if !f {
+				debugImportStartFailure("athlete not found during update import", start, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName))
 				return nil, false, fmt.Errorf("athlete with given AthleteName '%s' was not found", start.AthleteName)
 			}
 			start.Athlete = athlete.Identifier
@@ -589,13 +613,16 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 
 	if needsTeamLookup {
 		if teamClient == nil {
+			debugImportStartFailure("team client missing during update import", start, fmt.Errorf("team client is not configured"))
 			return nil, false, fmt.Errorf("team client is not configured")
 		}
 		team, f2, err4 := teamClient.GetTeamByName(start.AthleteTeamName)
 		if err4 != nil {
+			debugImportStartFailure("team lookup during update import", start, err4)
 			return nil, false, err4
 		}
 		if !f2 {
+			debugImportStartFailure("team not found during update import", start, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName))
 			return nil, false, fmt.Errorf("team with given AthleteTeamName '%s' was not found", start.AthleteTeamName)
 		}
 
@@ -655,15 +682,44 @@ func ImportStart(start model.Start) (*model.Start, bool, error) {
 		existing.Rank = start.Rank
 		changed = true
 	}
+	// if ranks set in start import -> update given ranks. Assumes that RankingId is set
+	if len(start.Ranks) > 0 {
+		err3 := addOrUpdateRanksInStart(&existing, start.Ranks)
+		if err3 != nil {
+			debugImportStartFailure("update ranks during import", start, err3)
+			return nil, false, err3
+		}
+	}
 
 	if changed {
 		fmt.Printf("updating some values...\n")
 		existing, err = UpdateStart(existing)
 		if err != nil {
+			debugImportStartFailure("persist updated start", start, err)
 			return nil, false, err
 		}
 	}
 	return &existing, false, nil
+}
+
+func debugImportStartFailure(stage string, start model.Start, err error) {
+	fmt.Printf(
+		"import start failed at %s: meeting=%q event=%d heat=%d lane=%d athlete_name=%q athlete_year=%d athlete_meeting_id=%d athlete_team_name=%q athlete=%s athlete_team=%s relay=%t start_id=%s reason=%v\n",
+		stage,
+		start.Meeting,
+		start.Event,
+		start.HeatNumber,
+		start.Lane,
+		start.AthleteName,
+		start.AthleteYear,
+		start.AthleteMeetingId,
+		start.AthleteTeamName,
+		start.Athlete.Hex(),
+		start.AthleteTeam.Hex(),
+		start.IsRelay,
+		start.Identifier.Hex(),
+		err,
+	)
 }
 
 func ImportResult(start model.Start, result model.Result) (*model.Result, bool, error) {
@@ -674,11 +730,38 @@ func ImportResult(start model.Start, result model.Result) (*model.Result, bool, 
 	if !found {
 		return nil, false, fmt.Errorf("start with given information not found")
 	}
-	res, err2 := UpdateStartAddResult(existing.Identifier, result)
+	res, c, err2 := UpdateStartAddOrUpdateResult(existing.Identifier, result)
 	if err2 != nil {
 		return nil, false, err2
 	}
-	return &res, true, nil
+	return &res, c, nil
+}
+
+func ImportRank(start model.Start, rank model.Rank) (*model.Rank, bool, error) {
+	existingStart, found, err := GetStartFromImport(start)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, false, fmt.Errorf("start with given information not found")
+	}
+
+	existingRanking, found, err3 := GetRankingByImport(rank.Ranking)
+	if err3 != nil {
+		return nil, false, err3
+	}
+
+	if !found {
+		return nil, false, fmt.Errorf("ranking with given information not found")
+	}
+
+	rank.RankingId = existingRanking.Identifier
+
+	res, c, err2 := UpdateStartAddOrUpdateRank(existingStart.Identifier, rank)
+	if err2 != nil {
+		return nil, false, err2
+	}
+	return &res, c, nil
 }
 
 func UpdateStart(start model.Start) (model.Start, error) {
@@ -711,16 +794,81 @@ func UpdateStartSetDisqualification(startId primitive.ObjectID, disqualification
 	return nil
 }
 
-func UpdateStartAddResult(startId primitive.ObjectID, result model.Result) (model.Result, error) {
+// UpdateStartAddOrUpdateResult bool is true if the result was added, false if it was updated
+func UpdateStartAddOrUpdateResult(startId primitive.ObjectID, result model.Result) (model.Result, bool, error) {
 	start, err := GetStartById(startId)
 	if err != nil {
-		return model.Result{}, err
+		return model.Result{}, false, err
 	}
 	result.AddedAt = time.Now()
-	start.Results = append(start.Results, result)
+	found := false
+	for i, r := range start.Results {
+		if r.ResultType == result.ResultType && r.LapMeters == result.LapMeters {
+			start.Results[i] = result
+			found = true
+			break
+		}
+	}
+	if !found {
+		start.Results = append(start.Results, result)
+	}
 	_, err2 := UpdateStart(start)
 	if err2 != nil {
-		return model.Result{}, err2
+		return model.Result{}, false, err2
 	}
-	return result, nil
+	return result, !found, nil
+}
+
+// UpdateStartAddOrUpdateRank bool is true if the rank was added, false if it was updated, rank must have correct rankingId set!!
+func UpdateStartAddOrUpdateRank(startId primitive.ObjectID, rank model.Rank) (model.Rank, bool, error) {
+	start, err := GetStartById(startId)
+	if err != nil {
+		return model.Rank{}, false, err
+	}
+
+	rank.UpdatedAt = time.Now()
+	found := false
+	for i, r := range start.Ranks {
+		if r.RankingId == rank.RankingId {
+			start.Ranks[i] = rank
+			found = true
+			break
+		}
+	}
+	if !found {
+		rank.AddedAt = time.Now()
+		start.Ranks = append(start.Ranks, rank)
+	}
+	_, err2 := UpdateStart(start)
+	if err2 != nil {
+		return model.Rank{}, false, err2
+	}
+	return rank, !found, nil
+}
+
+// addOrUpdateRanksInStart replaces ranks in a start but does not save the start
+func addOrUpdateRanksInStart(start *model.Start, ranks []model.Rank) error {
+	for _, rank := range ranks {
+		if rank.Ranking.Identifier.IsZero() {
+			return fmt.Errorf("cannot add rank to start without ranking id set, use rank import to add new ranks  without knowing the ranking id beforehand")
+		}
+
+		rank.RankingId = rank.Ranking.Identifier
+
+		rank.UpdatedAt = time.Now()
+		found := false
+		for i, r := range start.Ranks {
+			if r.RankingId == rank.RankingId {
+				start.Ranks[i] = rank
+				found = true
+				break
+			}
+		}
+		if !found {
+			rank.AddedAt = time.Now()
+			start.Ranks = append(start.Ranks, rank)
+		}
+	}
+
+	return nil
 }

@@ -2,14 +2,16 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/service"
-	"net/http"
 )
 
 func resultController() {
-	router.POST("/result/import", importResult)
+	security.Route(router, "POST", "/result/import", security.PermissionAdmin, importResult)
 }
 
 func importResult(c *gin.Context) {
@@ -19,12 +21,17 @@ func importResult(c *gin.Context) {
 		return
 	}
 
-	result, _, err := service.ImportResult(request.Start, request.Result)
+	result, r, err := service.ImportResult(request.Start, request.Result)
 	if err != nil {
 		fmt.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, result)
+
+	if r {
+		c.IndentedJSON(http.StatusCreated, result)
+	} else {
+		c.IndentedJSON(http.StatusOK, result)
+	}
 
 }

@@ -1,8 +1,9 @@
 package model
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Start struct {
@@ -25,6 +26,7 @@ type Start struct {
 	Points             int                `json:"points,omitempty" bson:"points,omitempty"`                         // PDF + DSV				(update on import)
 	Certified          bool               `json:"certified,omitempty" bson:"certified,omitempty"`                   // PDF + DSV				(update on import)
 	Results            []Result           `json:"results,omitempty" bson:"results,omitempty"`                       // PDF + DSV + Livetiming
+	Ranks              []Rank             `json:"ranks,omitempty" bson:"ranks,omitempty"`                           // PDF + DSV + Livetiming
 	DisqualificationId primitive.ObjectID `json:"-" bson:"disqualification_id,omitempty"`                           // automatically
 	Disqualification   Disqualification   `json:"disqualification,omitempty" bson:"-"`                              // PDF + DSV
 	AddedAt            time.Time          `json:"added_at,omitempty" bson:"added_at,omitempty"`                     // automatically

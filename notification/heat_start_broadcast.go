@@ -25,7 +25,7 @@ func BroadcastHeatStart(meeting string, event int, heat int, delay int) {
 
 	data := MeetingBroadcastData{status}
 
-	notification, err := notificationClient.SendMeetingBroadcastNotification(serviceKey, meeting, data)
+	notification, err := notificationClient.SendMeetingBroadcastNotification(meeting, data)
 	if err != nil {
 		fmt.Printf("failed sending meeting broadcast notification: %s\n", err.Error())
 		return

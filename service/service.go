@@ -2,18 +2,18 @@ package service
 
 import (
 	"context"
+	"os"
+	"time"
+
 	client2 "github.com/swimresults/athlete-service/client"
 	meetingClient "github.com/swimresults/meeting-service/client"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"os"
-	"time"
 )
 
 var client *mongo.Client
 var athleteClient *client2.AthleteClient
 var teamClient *client2.TeamClient
-var ageGroupClient *meetingClient.AgeGroupClient
 var eventClient *meetingClient.EventClient
 
 func Init(c *mongo.Client) {
@@ -28,7 +28,6 @@ func Init(c *mongo.Client) {
 
 	meetingServiceUrl := os.Getenv("SR_START_MEETING_URL")
 	if meetingServiceUrl != "" {
-		ageGroupClient = meetingClient.NewAgeGroupClient(meetingServiceUrl)
 		eventClient = meetingClient.NewEventClient(meetingServiceUrl)
 	}
 
@@ -36,6 +35,7 @@ func Init(c *mongo.Client) {
 	heatService(database)
 	disqualificationService(database)
 	registrationService(database)
+	rankingService(database)
 
 	StartNotificationMainLoop()
 }

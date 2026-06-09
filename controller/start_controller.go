@@ -2,13 +2,15 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
+	"github.com/swimresults/service-core/security"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
 	"github.com/swimresults/start-service/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"strconv"
 )
 
 func startController() {
@@ -30,13 +32,13 @@ func startController() {
 	router.GET("/start/meet/:meet_id/livestream/state", getLivestreamHeatState)
 	router.GET("/start/athlete/:ath_id", getStartsByAthlete)
 
-	router.POST("/start", addStart)
-	router.POST("/start/import", importStart)
+	security.Route(router, http.MethodPost, "/start", security.PermissionAdmin, addStart)
+	security.Route(router, http.MethodPost, "/start/import", security.PermissionAdmin, importStart)
 
-	router.DELETE("/start/:id", removeStart)
-	router.DELETE("/start/meet/:meet_id/event/:event_id", deleteStartsByMeetingAndEvent)
+	security.Route(router, http.MethodDelete, "/start/:id", security.PermissionAdmin, removeStart)
+	security.Route(router, http.MethodDelete, "/start/meet/:meet_id/event/:event_id", security.PermissionAdmin, deleteStartsByMeetingAndEvent)
 
-	router.PUT("/start", updateStart)
+	security.Route(router, http.MethodPut, "/start", security.PermissionAdmin, updateStart)
 }
 
 func getStarts(c *gin.Context) {
