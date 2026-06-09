@@ -25,15 +25,15 @@ func startService(database *mongo.Database) {
 
 var startNotFoundError = "no start found"
 
-func getStartsByBsonDocument(d interface{}) ([]model.Start, error) {
+func getStartsByBsonDocument(d interface{}, fetchDelay bool) ([]model.Start, error) {
 
 	queryOptions := options.FindOptions{}
 	queryOptions.SetSort(bson.D{{"event", 1}, {"heat_number", 1}, {"lane", 1}})
 
-	return getStartsByBsonDocumentWithOptions(d, &queryOptions)
+	return getStartsByBsonDocumentWithOptions(d, &queryOptions, fetchDelay)
 }
 
-func getStartsByBsonDocumentWithOptions(d interface{}, queryOptions *options.FindOptions) ([]model.Start, error) {
+func getStartsByBsonDocumentWithOptions(d interface{}, queryOptions *options.FindOptions, fetchDelay bool) ([]model.Start, error) {
 	var starts []model.Start
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -51,7 +51,13 @@ func getStartsByBsonDocumentWithOptions(d interface{}, queryOptions *options.Fin
 		if !start.DisqualificationId.IsZero() {
 			start.Disqualification, _ = GetDisqualificationById(start.DisqualificationId)
 		}
-		start.Heat, _ = GetHeatByNumberWithoutDelay(start.Meeting, start.Event, start.HeatNumber)
+
+		if fetchDelay {
+			start.Heat, _ = GetHeatByNumber(start.Meeting, start.Event, start.HeatNumber)
+		} else {
+			start.Heat, _ = GetHeatByNumberWithoutDelay(start.Meeting, start.Event, start.HeatNumber)
+		}
+
 		starts = append(starts, start)
 	}
 
@@ -71,7 +77,7 @@ func getStartByBsonDocument(d interface{}) (model.Start, error) {
 }
 
 func getStartByBsonDocumentWithOptions(d interface{}, queryOptions *options.FindOptions) (model.Start, error) {
-	starts, err := getStartsByBsonDocumentWithOptions(d, queryOptions)
+	starts, err := getStartsByBsonDocumentWithOptions(d, queryOptions, true)
 
 	if err != nil {
 		return model.Start{}, err
@@ -89,7 +95,7 @@ func GetStartById(id primitive.ObjectID) (model.Start, error) {
 }
 
 func GetStarts() ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{})
+	return getStartsByBsonDocument(bson.D{}, false)
 }
 
 func GetStartsAmount() (int, error) {
@@ -117,11 +123,11 @@ func GetStartsAmountByMeeting(meeting string) (int, error) {
 }
 
 func GetStartsByMeeting(meeting string) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"meeting", meeting}})
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}}, false)
 }
 
 func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([]model.Start, error) {
-	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}})
+	starts, err := getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"athlete", athlete}}, true)
 	if err != nil {
 		return []model.Start{}, err
 	}
@@ -133,11 +139,11 @@ func GetStartsByMeetingAndAthlete(meeting string, athlete primitive.ObjectID) ([
 }
 
 func GetStartsByMeetingAndEvent(meeting string, event int) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}})
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}}, true)
 }
 
 func GetStartsByMeetingAndEventAndHeat(meeting string, event int, heat int) ([]model.Start, error) {
-	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}})
+	return getStartsByBsonDocument(bson.D{{"meeting", meeting}, {"event", event}, {"heat", heat}}, true)
 }
 
 func GetStartByMeetingAndEventAndHeatAndLane(meeting string, event int, heat int, lane int) (model.Start, error) {
@@ -188,7 +194,7 @@ func GetStartByMeetingAndEventAndAthleteId(meeting string, event int, athleteId 
 }
 
 func GetStartsByAthlete(athlete primitive.ObjectID) ([]model.Start, error) {
-	starts, err := getStartsByBsonDocument(bson.D{{"athlete", athlete}})
+	starts, err := getStartsByBsonDocument(bson.D{{"athlete", athlete}}, true)
 	if err != nil {
 		return []model.Start{}, err
 	}
@@ -222,7 +228,7 @@ func GetStartsByMeetingAndEventAsResults(meeting string, event int) ([]dto.Event
 					bson.M{"event": event},
 					bson.M{"athlete_year": bson.M{"$in": group.Ages}},
 				},
-			}, &queryOptions)
+			}, &queryOptions, true)
 
 		if err2 != nil {
 			return nil, err2

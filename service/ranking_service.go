@@ -138,10 +138,10 @@ func GetRankingByImport(ranking model.Ranking) (model.Ranking, bool, error) {
 			if err.Error() != rankingNotFoundError {
 				return model.Ranking{}, false, err
 			}
-			return model.Ranking{}, false, nil
+		} else {
+			return existing, true, nil
 		}
 
-		return existing, true, nil
 	}
 
 	if ranking.DsvId != "" {
@@ -151,22 +151,20 @@ func GetRankingByImport(ranking model.Ranking) (model.Ranking, bool, error) {
 			if err.Error() != rankingNotFoundError {
 				return model.Ranking{}, false, err
 			}
-			return model.Ranking{}, false, nil
+		} else {
+			return existing, true, nil
 		}
-
-		return existing, true, nil
 	}
 
-	if ranking.Name != "" {
+	if ranking.Name != "" { // should not fail but just jump to next, name could be new
 		existing, err = GetRankingByMeetingAndEventAndName(ranking.Meeting, ranking.Event, ranking.Name)
 		if err != nil {
 			if err.Error() != rankingNotFoundError {
 				return model.Ranking{}, false, err
 			}
-			return model.Ranking{}, false, nil
+		} else {
+			return existing, true, nil
 		}
-
-		return existing, true, nil
 	}
 
 	existing, err = GetRankingByMeetingAndEventAndAges(ranking.Meeting, ranking.Event, ranking.MinAge, ranking.MaxAge)
@@ -270,17 +268,16 @@ func SetAgesForRanking(group *model.Ranking) {
 	min, _ := strconv.Atoi(group.MinAge)
 	max, _ := strconv.Atoi(group.MaxAge)
 
-	if min > max {
-		a := min
-		min = max
-		max = a
+	if min <= 0 {
+		min = 2100
+	}
+
+	if max <= 0 {
+		max = 1900
 	}
 
 	group.Ages = []int{}
-	for i := min; i <= max; i++ {
-		if i < 1900 || i > 2050 {
-			continue
-		}
+	for i := max; i <= min; i++ {
 		group.Ages = append(group.Ages, i)
 	}
 }
