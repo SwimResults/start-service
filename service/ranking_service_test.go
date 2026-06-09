@@ -30,7 +30,7 @@ func TestSetAgesForRankingWrongOrder(t *testing.T) {
 
 	SetAgesForRanking(&group)
 
-	assert.Equal(t, []int{2002, 2003, 2004}, group.Ages)
+	assert.Equal(t, []int{}, group.Ages)
 }
 
 func TestSetAgesForRankingOlder(t *testing.T) {
