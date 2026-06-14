@@ -462,6 +462,7 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		changed = true
 	}
 	if !heat.FinishedAt.IsZero() {
+		fmt.Printf("update heat time for e: %d, h: %d -> %v\n", heat.Event, heat.Number, heat.FinishedAt)
 		existing.FinishedAt = heat.FinishedAt
 		changed = true
 	}
