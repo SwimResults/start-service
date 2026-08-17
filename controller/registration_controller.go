@@ -11,10 +11,10 @@ import (
 )
 
 func registrationController() {
-	router.GET("/registration/:id", getRegistration)
+	security.Route(router, http.MethodGet, "/registration/:id", security.PermissionMeeting, getRegistration)
 
-	router.GET("/registration/meet/:meet_id", getRegistrationsByMeeting)
-	router.GET("/registration/meet/:meet_id/me", getRegistrationsByMeetingForMe)
+	security.Route(router, http.MethodGet, "/registration/meet/:meet_id", security.PermissionMeeting, getRegistrationsByMeeting)
+	security.Route(router, http.MethodGet, "/registration/meet/:meet_id/me", security.PermissionMeeting, getRegistrationsByMeetingForMe)
 
 	security.Route(router, http.MethodPost, "/registration", security.PermissionAdmin, addRegistration)
 
