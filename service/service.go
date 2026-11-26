@@ -5,16 +5,18 @@ import (
 	"os"
 	"time"
 
-	client2 "github.com/swimresults/athlete-service/client"
-	meetingClient "github.com/swimresults/meeting-service/client"
+	"fmt"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 var client *mongo.Client
-var athleteClient *client2.AthleteClient
-var teamClient *client2.TeamClient
-var eventClient *meetingClient.EventClient
+
+// clients for the other services, see clients.go; nil if their URL is not configured
+var athleteClient *AthleteClient
+var teamClient *TeamClient
+var eventClient *EventClient
 
 func Init(c *mongo.Client) {
 	database := c.Database(os.Getenv("SR_START_MONGO_DATABASE"))
@@ -22,13 +24,21 @@ func Init(c *mongo.Client) {
 
 	athleteServiceUrl := os.Getenv("SR_START_ATHLETE_URL")
 	if athleteServiceUrl != "" {
-		athleteClient = client2.NewAthleteClient(athleteServiceUrl)
-		teamClient = client2.NewTeamClient(athleteServiceUrl)
+		if api, err := newAthleteAPI(athleteServiceUrl); err != nil {
+			fmt.Printf("invalid SR_START_ATHLETE_URL %q: %v\n", athleteServiceUrl, err)
+		} else {
+			athleteClient = &AthleteClient{api}
+			teamClient = &TeamClient{api}
+		}
 	}
 
 	meetingServiceUrl := os.Getenv("SR_START_MEETING_URL")
 	if meetingServiceUrl != "" {
-		eventClient = meetingClient.NewEventClient(meetingServiceUrl)
+		if c, err := newEventClient(meetingServiceUrl); err != nil {
+			fmt.Printf("invalid SR_START_MEETING_URL %q: %v\n", meetingServiceUrl, err)
+		} else {
+			eventClient = c
+		}
 	}
 
 	startService(database)
