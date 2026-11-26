@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/swimresults/athlete-service/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -10,8 +9,8 @@ type Registration struct {
 	Identifier           primitive.ObjectID    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Meeting              string                `json:"meeting" bson:"meeting"`
 	CreatorUserId        primitive.ObjectID    `json:"creator_user_id,omitempty" bson:"creator_user_id,omitempty"`
-	Address              model.Address         `json:"address,omitempty" bson:"address,omitempty"`
-	Contact              model.Contact         `json:"contact,omitempty" bson:"contact,omitempty"`
+	Address              Address               `json:"address,omitempty" bson:"address,omitempty"`
+	Contact              Contact               `json:"contact,omitempty" bson:"contact,omitempty"`
 	AthleteRegistrations []AthleteRegistration `json:"athlete_registrations" bson:"athlete_registrations"`
 	AddedAt              time.Time             `json:"added_at,omitempty" bson:"added_at,omitempty"`
 	UpdatedAt            time.Time             `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
