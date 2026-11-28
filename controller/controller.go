@@ -40,6 +40,7 @@ func Run() {
 	rankingController()
 	rankController()
 	registrationController()
+	liveController()
 
 	router.GET("/actuator", actuator)
 

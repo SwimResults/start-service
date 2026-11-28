@@ -46,6 +46,7 @@ func Init(c *mongo.Client) {
 	disqualificationService(database)
 	registrationService(database)
 	rankingService(database)
+	liveService(database)
 
 	StartNotificationMainLoop()
 }
