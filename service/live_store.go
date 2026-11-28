@@ -96,6 +96,7 @@ func SetLiveMessage(meeting string, text string, mode model.LiveMessageMode, use
 	liveMu.Lock()
 	liveEntryLocked(meeting).live.Message = &msg
 	liveMu.Unlock()
+	triggerLiveBroadcast(meeting)
 	return persistLive(meeting, bson.M{"$set": bson.M{"message": msg}})
 }
 
@@ -104,6 +105,7 @@ func ClearLiveMessage(meeting string) error {
 	liveMu.Lock()
 	liveEntryLocked(meeting).live.Message = nil
 	liveMu.Unlock()
+	triggerLiveBroadcast(meeting)
 	return persistLive(meeting, bson.M{"$unset": bson.M{"message": ""}})
 }
 

@@ -54,7 +54,7 @@ func TestSendNotificationError(t *testing.T) {
 
 func TestSendMeetingBroadcast(t *testing.T) {
 	body, path := stubUserService(t, 200, `{"apns_request_id":"r","apns_unique_id":"u","body":""}`)
-	res, err := notificationClient.SendMeetingBroadcastNotification("IESC19", MeetingBroadcastData{MeetingBroadcastStatusData{Event: 3, Heat: 2, Delay: 5}})
+	res, err := notificationClient.SendMeetingBroadcastNotification("IESC19", MeetingBroadcastData{Status: MeetingBroadcastStatusData{Event: 3, Heat: 2, Delay: 5}})
 	if err != nil || res.ApnsRequestId != "r" {
 		t.Fatalf("res=%+v err=%v", res, err)
 	}
