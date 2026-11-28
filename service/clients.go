@@ -147,3 +147,62 @@ func (e *EventClient) GetEventByMeetingAndNumber(meeting string, number int) (*m
 	}
 	return res.JSON200, nil
 }
+
+func (e *EventClient) GetMeetingByMeetId(meeting string) (*meetingapi.Meeting, error) {
+	ctx, cancel := reqCtx()
+	defer cancel()
+	res, err := e.c.GetMeetingByMeetIdWithResponse(ctx, meeting)
+	if err != nil {
+		return nil, err
+	}
+	if res.JSON200 == nil {
+		return nil, fmt.Errorf("GetMeetingByMeetId received error: %d", res.StatusCode())
+	}
+	return res.JSON200, nil
+}
+
+// ---------------------------------------------------------------- caches for the live status
+
+const (
+	meetingCacheTTL = 30 * time.Second // warnings and state reach the live status within this time
+	eventCacheTTL   = 60 * time.Second
+)
+
+var meetingCache = newTTLCache[string, *meetingapi.Meeting]()
+
+type eventKey struct {
+	meeting string
+	number  int
+}
+
+var eventCache = newTTLCache[eventKey, *meetingapi.Event]()
+
+// getMeetingCached returns the meeting, or nil if meeting-service is not configured or unavailable.
+func getMeetingCached(meeting string) *meetingapi.Meeting {
+	if eventClient == nil {
+		return nil
+	}
+	m, err := meetingCache.get(meeting, meetingCacheTTL, func() (*meetingapi.Meeting, error) {
+		return eventClient.GetMeetingByMeetId(meeting)
+	})
+	if err != nil {
+		fmt.Printf("live: meeting %s: %v\n", meeting, err)
+		return nil
+	}
+	return m
+}
+
+// getEventCached returns the event, or nil if meeting-service is not configured or unavailable.
+func getEventCached(meeting string, number int) *meetingapi.Event {
+	if eventClient == nil {
+		return nil
+	}
+	ev, err := eventCache.get(eventKey{meeting, number}, eventCacheTTL, func() (*meetingapi.Event, error) {
+		return eventClient.GetEventByMeetingAndNumber(meeting, number)
+	})
+	if err != nil {
+		fmt.Printf("live: event %s/%d: %v\n", meeting, number, err)
+		return nil
+	}
+	return ev
+}
