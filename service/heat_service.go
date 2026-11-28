@@ -9,7 +9,6 @@ import (
 	"github.com/swimresults/service-core/misc"
 	"github.com/swimresults/start-service/dto"
 	"github.com/swimresults/start-service/model"
-	"github.com/swimresults/start-service/notification"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -467,6 +466,7 @@ func ImportHeat(heat model.Heat) (model.Heat, bool, error) {
 		changed = true
 	}
 	if changed {
+		defer liveHeatsChanged(existing.Meeting)
 		existing, err = UpdateHeat(existing)
 		if err != nil {
 			return model.Heat{}, false, err
@@ -511,6 +511,10 @@ func UpdateHeatTimes(id primitive.ObjectID, time time.Time, timeType string) (mo
 		break
 	}
 
+	if timeType == "start_at" || timeType == "finished_at" {
+		RecordLiveData(heat.Meeting, "heat-time")
+	}
+	defer liveHeatsChanged(heat.Meeting)
 	return UpdateHeat(heat)
 }
 
@@ -533,8 +537,8 @@ func SetHeatStartToNowByNumber(meeting string, event int, number int) (model.Hea
 
 	heat.StartAt = misc.TimeNow()
 
-	go notification.BroadcastHeatStart(meeting, event, number, int(heat.StartEstimation.Sub(heat.StartAt).Seconds()))
-
+	RecordLiveData(meeting, "heat-start")
+	defer liveHeatsChanged(meeting)
 	return UpdateHeat(heat)
 }
 
