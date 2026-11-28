@@ -206,3 +206,50 @@ func getEventCached(meeting string, number int) *meetingapi.Event {
 	}
 	return ev
 }
+
+func (e *EventClient) GetMeetings() ([]meetingapi.Meeting, error) {
+	ctx, cancel := reqCtx()
+	defer cancel()
+	res, err := e.c.GetMeetingsWithResponse(ctx, &meetingapi.GetMeetingsParams{})
+	if err != nil {
+		return nil, err
+	}
+	if res.JSON200 == nil {
+		if res.StatusCode() == http.StatusOK {
+			return nil, nil // Go sends null for an empty list
+		}
+		return nil, fmt.Errorf("GetMeetings received error: %d", res.StatusCode())
+	}
+	return *res.JSON200, nil
+}
+
+const liveMeetingsTTL = 60 * time.Second
+
+var liveMeetingsCache = newTTLCache[struct{}, []meetingapi.Meeting]()
+
+// liveMeetingStates are the meeting states in which apps show the live bar and Live Activities update.
+var liveMeetingStates = map[string]bool{"RUNNING": true, "BREAK": true, "PAUSE": true}
+
+// isLiveBroadcastMeeting: live meeting state and a Live Activity push channel.
+func isLiveBroadcastMeeting(m *meetingapi.Meeting) bool {
+	return m != nil && liveMeetingStates[m.State] && m.Data.PushNotificationChannel != ""
+}
+
+// getLiveBroadcastMeetings returns the meeting ids whose Live Activities get live status broadcasts.
+func getLiveBroadcastMeetings() []string {
+	if eventClient == nil {
+		return nil
+	}
+	meetings, err := liveMeetingsCache.get(struct{}{}, liveMeetingsTTL, eventClient.GetMeetings)
+	if err != nil {
+		fmt.Printf("live: meetings: %v\n", err)
+		return nil
+	}
+	var ids []string
+	for i := range meetings {
+		if isLiveBroadcastMeeting(&meetings[i]) && meetings[i].MeetId != "" {
+			ids = append(ids, meetings[i].MeetId)
+		}
+	}
+	return ids
+}

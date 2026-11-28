@@ -41,6 +41,7 @@ func main() {
 	defer file.Close()
 	service.Init(client)
 	notification.Init()
+	service.StartLiveTicker()
 	controller.Run()
 
 	if err := client.Disconnect(ctx); err != nil {
